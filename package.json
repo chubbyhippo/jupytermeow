@@ -1,0 +1,24 @@
+{
+  "name": "jupytermeow",
+  "version": "0.1.0",
+  "description": "Meow-style modal editing for JupyterLab (CodeMirror 6): NORMAL / INSERT / MOTION / KEYPAD states, selection-first commands, the char-thing table, digit expand with hints, grab / swap-grab / sync-grab, and avy jumps. The whole keymap lives in a bundled .jupytermeowrc (QWERTY by default, every key rebindable); user rc lines override it entry by entry through the Settings editor.",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chubbyhippo/jupytermeow.git"
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -w -p ./",
+    "test": "npm run compile && node --test \"out/test/*.test.js\"",
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^20.14.0",
+    "eslint": "^10.7.0",
+    "prettier": "^3.6.0",
+    "typescript": "^5.5.0",
+    "typescript-eslint": "^8.63.0"
+  }
+}

@@ -1,0 +1,232 @@
+" ============================================================================
+" .jupytermeowrc — THE default keymap of the jupytermeow extension
+" ----------------------------------------------------------------------------
+" The extension binds no keys in code: these lines ARE the default
+" NORMAL/MOTION layout (meow's suggested QWERTY), plus the SPC keypad
+" <action> table of JupyterLab command ids.
+" User overrides land entry by entry through the JupyterLab Settings editor
+" (jupytermeow: "rc lines") — only the lines you change matter; a removed
+" line falls back to the bundled default (bind `ignore` to disable a key).
+" Open the settings with SPC c m; reload applies automatically on save.
+" Within this file, a later line for the same key wins.
+" ============================================================================
+
+set which-key
+set timeoutlen=300
+
+" expand / counts
+nmap 0 meow-expand-0
+nmap 1 meow-expand-1
+nmap 2 meow-expand-2
+nmap 3 meow-expand-3
+nmap 4 meow-expand-4
+nmap 5 meow-expand-5
+nmap 6 meow-expand-6
+nmap 7 meow-expand-7
+nmap 8 meow-expand-8
+nmap 9 meow-expand-9
+nmap - meow-negative-argument
+
+" selections / things
+nmap ; meow-reverse
+nmap , meow-inner-of-thing
+nmap . meow-bounds-of-thing
+nmap [ meow-beginning-of-thing
+nmap ] meow-end-of-thing
+nmap < meow-beginning-of-thing
+nmap > meow-end-of-thing
+
+" the letter keys
+nmap a meow-append
+nmap A meow-open-below
+nmap b meow-back-word
+nmap B meow-back-symbol
+nmap c meow-change
+nmap d meow-delete
+nmap D meow-backward-delete
+nmap e meow-next-word
+nmap E meow-next-symbol
+nmap f meow-find
+nmap g meow-cancel-selection
+nmap G meow-grab
+nmap h meow-left
+nmap H meow-left-expand
+nmap i meow-insert
+nmap I meow-open-above
+nmap j meow-next
+nmap J meow-next-expand
+nmap k meow-prev
+nmap K meow-prev-expand
+nmap l meow-right
+nmap L meow-right-expand
+nmap m meow-join
+nmap n meow-search
+nmap o meow-block
+nmap O meow-to-block
+nmap p meow-yank
+nmap q meow-quit
+nmap Q avy-goto-line
+nmap r meow-replace
+nmap R meow-swap-grab
+nmap s meow-kill
+nmap S avy-goto-char-timer
+nmap t meow-till
+nmap u meow-undo
+nmap U meow-undo-in-selection
+nmap v meow-visit
+nmap w meow-mark-word
+nmap W meow-mark-symbol
+nmap x meow-line
+nmap X meow-goto-line
+nmap y meow-save
+nmap Y meow-sync-grab
+nmap z meow-pop-selection
+nmap ' repeat
+
+" MOTION mode — the keymap of the file browser listing: j/k move, h goes to
+" the parent directory, l opens, q hides the panel; every unmapped key keeps
+" its native meaning
+mmap j meow-next
+mmap k meow-prev
+mmap h meow-left
+mmap l meow-right
+mmap q <action>(jupytermeow.hideView)
+
+" ── SPC keypad table ────────────────────────────────────────────────────────
+" SPC is the leader; these sequences dispatch JupyterLab commands by id.
+" SPC 1-9 = digit argument, SPC ? = cheatsheet, SPC / = describe-key
+" (handled in code).
+map <leader><Space> <action>(application:activate-previous-tab)
+desc <leader><Space> last tab
+
+desc <leader>x files
+map <leader>xf <action>(filebrowser:open-path)
+map <leader>xs <action>(docmanager:save)
+map <leader>xS <action>(docmanager:save-all)
+map <leader>xw <action>(docmanager:save-as)
+map <leader>xk <action>(application:close)
+map <leader>xK <action>(application:close-all)
+map <leader>xO <action>(application:close-other-tabs)
+map <leader>xr <action>(docmanager:reload)
+map <leader>xR <action>(docmanager:rename)
+map <leader>xd <action>(filebrowser:toggle-main)
+map <leader>xn <action>(filebrowser:create-new-file)
+
+desc <leader>w windows / tabs / zoom
+map <leader>wn <action>(application:activate-next-tab)
+map <leader>wp <action>(application:activate-previous-tab)
+map <leader>w. <action>(application:activate-next-tab)
+map <leader>w, <action>(application:activate-previous-tab)
+" w = focus the next tab area, v = split the current tab, m = move it
+map <leader>ww <action>(application:activate-next-tab-bar)
+map <leader>wv <action>(application:split-tab)
+map <leader>wm <action>(application:move-widget)
+map <leader>wh <action>(jupytermeow.windmoveLeft)
+map <leader>wj <action>(jupytermeow.windmoveDown)
+map <leader>wk <action>(jupytermeow.windmoveUp)
+map <leader>wl <action>(jupytermeow.windmoveRight)
+map <leader>wi <action>(application:zoom-in-widget)
+map <leader>w= <action>(application:zoom-in-widget)
+map <leader>wo <action>(application:zoom-out-widget)
+map <leader>w- <action>(application:zoom-out-widget)
+map <leader>wu <action>(application:reset-widget-zoom)
+map <leader>w0 <action>(application:reset-widget-zoom)
+
+desc <leader>e edit / search
+map <leader>ef <action>(documentsearch:start)
+
+desc <leader>j jump
+map <leader>jl <action>(fileeditor:go-to-line)
+
+desc <leader>c C-c · commands / config
+map <leader>cf <action>(filebrowser:open-path)
+map <leader>cs <action>(docmanager:save-all)
+map <leader>ck <action>(application:close)
+map <leader>cc <action>(notebook:create-console)
+map <leader>cm <action>(jupytermeow.editRc)
+map <leader>cM <action>(jupytermeow.reloadRc)
+
+desc <leader>cj C-c j · avy jump
+map <leader>cjw avy-goto-char-timer
+map <leader>cjc avy-goto-char-timer
+map <leader>cjl avy-goto-line
+
+desc <leader>m M- · meta
+map <leader>mx <action>(apputils:activate-command-palette)
+map <leader>mo avy-goto-char-timer
+map <leader>mg avy-goto-line
+
+desc <leader>h toggle presentation mode
+map <leader>h <action>(application:toggle-presentation-mode)
+
+desc <leader>q close tab
+map <leader>q <action>(application:close)
+
+desc <leader>r run / kernel
+map <leader>rr <action>(notebook:run-cell)
+map <leader>rn <action>(notebook:run-cell-and-select-next)
+map <leader>rb <action>(notebook:run-cell-and-insert-below)
+map <leader>ra <action>(notebook:run-all-cells)
+map <leader>rc <action>(fileeditor:run-code)
+map <leader>rk <action>(notebook:restart-kernel)
+map <leader>rR <action>(notebook:restart-run-all)
+map <leader>rx <action>(notebook:interrupt-kernel)
+
+desc <leader>n notebook cells
+map <leader>nm <action>(notebook:change-cell-to-markdown)
+map <leader>ny <action>(notebook:change-cell-to-code)
+map <leader>nr <action>(notebook:change-cell-to-raw)
+map <leader>no <action>(notebook:clear-cell-output)
+map <leader>nO <action>(notebook:clear-all-cell-outputs)
+
+desc <leader>s search / print
+map <leader>ss <action>(documentsearch:start)
+map <leader>sp <action>(apputils:print)
+map <leader>sv <action>(jupytermeow.reloadRc)
+
+desc <leader>t toggle (line numbers / wrap / brackets)
+map <leader>tl <action>(fileeditor:toggle-line-numbers)
+map <leader>tw <action>(fileeditor:toggle-line-wrap)
+map <leader>tm <action>(fileeditor:toggle-match-brackets)
+
+desc <leader>; settings / UI
+map <leader>;f <action>(application:toggle-fullscreen-mode)
+map <leader>;p <action>(application:toggle-presentation-mode)
+map <leader>;k <action>(apputils:display-shortcuts)
+map <leader>;s <action>(settingeditor:open)
+map <leader>;l <action>(fileeditor:toggle-line-numbers)
+
+desc <leader>a activate / toggle area
+map <leader>af <action>(filebrowser:toggle-main)
+map <leader>al <action>(application:toggle-left-area)
+map <leader>ar <action>(application:toggle-right-area)
+map <leader>ab <action>(application:toggle-down-area)
+
+desc <leader>. next tab
+map <leader>.t <action>(application:activate-next-tab)
+desc <leader>, previous tab
+map <leader>,t <action>(application:activate-previous-tab)
+
+" ============================================================================
+" Repeat groups — tap-to-continue transient maps
+" ----------------------------------------------------------------------------
+" After any binding whose TARGET is listed in a group below (membership is
+" the target, not the key), the next keypress is first looked up in that
+" group: a member key re-dispatches its target and keeps the run alive; any
+" other key (or ESC) ends the run and keeps its normal meaning — nothing is
+" swallowed, and there is no timeout. The entering keypad key needn't be a
+" member. So: SPC w i then i i i keeps zooming; SPC w n then n n p walks
+" tabs. Syntax:
+"   repeat <group> <key> <target>     target grammar = the map-line RHS
+"   repeat <group> <key> ignore       give a bundled group's key back
+" ============================================================================
+repeat zoom i <action>(application:zoom-in-widget)
+repeat zoom = <action>(application:zoom-in-widget)
+repeat zoom o <action>(application:zoom-out-widget)
+repeat zoom - <action>(application:zoom-out-widget)
+repeat zoom u <action>(application:reset-widget-zoom)
+repeat zoom 0 <action>(application:reset-widget-zoom)
+repeat tab n <action>(application:activate-next-tab)
+repeat tab p <action>(application:activate-previous-tab)
+repeat tab . <action>(application:activate-next-tab)
+repeat tab , <action>(application:activate-previous-tab)
