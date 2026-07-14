@@ -1,0 +1,39 @@
+[build-system]
+requires = ["hatchling>=1.5.0", "hatch-jupyter-builder>=0.5"]
+build-backend = "hatchling.build"
+
+[project]
+name = "jupytermeow"
+version = "0.1.0"
+description = "Meow-style modal editing for JupyterLab's CodeMirror editors"
+readme = "README.md"
+license = { text = "GPL-3.0-or-later" }
+requires-python = ">=3.9"
+classifiers = [
+    "Framework :: Jupyter",
+    "Framework :: Jupyter :: JupyterLab",
+    "Framework :: Jupyter :: JupyterLab :: 4",
+    "Framework :: Jupyter :: JupyterLab :: Extensions",
+    "Framework :: Jupyter :: JupyterLab :: Extensions :: Prebuilt",
+]
+dependencies = []
+
+[tool.hatch.build.targets.wheel]
+artifacts = ["jupytermeow/labextension"]
+
+[tool.hatch.build.targets.wheel.shared-data]
+"jupytermeow/labextension" = "share/jupyter/labextensions/jupytermeow"
+"install.json" = "share/jupyter/labextensions/jupytermeow/install.json"
+
+[tool.hatch.build.targets.sdist]
+exclude = [".git", "node_modules", "out"]
+
+[tool.hatch.build.hooks.jupyter-builder]
+dependencies = ["hatch-jupyter-builder>=0.5"]
+build-function = "hatch_jupyter_builder.npm_builder"
+ensured-targets = ["jupytermeow/labextension/package.json"]
+skip-if-exists = ["jupytermeow/labextension/package.json"]
+
+[tool.hatch.build.hooks.jupyter-builder.build-kwargs]
+build_cmd = "build:labextension"
+npm = ["npm"]

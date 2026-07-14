@@ -94,7 +94,7 @@ function describe(ctx: Ctx, c: string): void {
 
 export const CHEATSHEET = `
 The bundled default layout (meow's suggested QWERTY) — every key below can
-be rebound from ~/.jupytermeowrc.
+be rebound with rc lines in the Settings editor (SPC c m).
 
 NORMAL — selection first, then act
   h j k l  move (cancel selection)       H J K L  extend char selection
@@ -120,27 +120,19 @@ NORMAL — selection first, then act
   BEACON   grab a region (G), then select w/x/f... inside it:
            a cursor lands on every match — edit them all, ESC to finish
 
-EMACS CHORDS (VS Code keybindings, not rc-configurable — Preferences)
-  C-f/b/n/p  char/line move            C-a/e      beginning/end of line
-  M-f/b      word move                 M-a/e      backward/forward sentence
-             no selection: just moves; with one active: extends it
-             (point motion over an active Emacs mark) — same rule ; reverses
+KEYPAD (SPC)
+  SPC x files   SPC w windows/tabs/zoom   SPC c commands   SPC m meta
+  SPC r run/kernel   SPC n notebook cells   SPC 0-9 count
+  SPC ? this sheet   SPC / describe key
+  SPC c m open the rc settings   SPC c M reload them
+  REPEAT  some entries start a run (Emacs repeat-mode): after SPC w i
+          keep tapping i (or = - o u 0) to keep zooming, after SPC w n
+          keep tapping n / p to walk tabs — any other key ends the run
+          and keeps its normal meaning
 
-KEYPAD (SPC — or Alt+; from ANY state, INSERT included; returns there)
-  SPC b bookmarks/buffers   SPC x file/buffer/window   SPC c commands   SPC m meta
-  SPC w windows   SPC 0-9 count   SPC ? this sheet   SPC / describe key
-  SPC c m edit ~/.jupytermeowrc   SPC c M reload it
-  SPC i d find a command id — filterable list, Enter copies the id
-          to use in <action>(...) mappings; its title buttons open
-          record-keys mode and the keystroke log ("what runs this key?")
-  REPEAT  some entries start a run (Emacs repeat-mode): after
-          SPC . e keep tapping . / , to walk errors, after SPC w i
-          keep tapping i (or = - o u 0) to keep zooming — any other
-          key ends the run and keeps its normal meaning
-
-~/.jupytermeowrc: nmap <key> <action>(command.id) | nmap <key> meow-command | nmap <key> <meow keys>
+rc lines: nmap <key> <action>(command:id) | nmap <key> meow-command | nmap <key> <meow keys>
   mmap ... (MOTION mode) | map <leader><seq> ... | desc <leader><seq> text | set nowhich-key
   repeat <group> <key> <target> — tap-to-continue groups (the REPEAT runs above)
-  every binding above is an rc line — the defaults ship as a bundled
-  .jupytermeowrc inside the extension; ~/.jupytermeowrc overrides them key by key
+  the defaults ship as a bundled .jupytermeowrc inside the extension; rc
+  lines in the Settings editor override them key by key
 `.trim();

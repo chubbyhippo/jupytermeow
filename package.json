@@ -8,10 +8,13 @@
     "url": "https://github.com/chubbyhippo/jupytermeow.git"
   },
   "scripts": {
-    "compile": "tsc -p ./",
+    "gen:rc": "node -e \"const fs=require('fs');fs.writeFileSync('src/labextension/bundledRc.ts','export const BUNDLED_RC: string = '+JSON.stringify(fs.readFileSync('.jupytermeowrc','utf8'))+';\\n')\"",
+    "compile": "npm run gen:rc && tsc -p ./",
     "watch": "tsc -w -p ./",
     "test": "npm run compile && node --test \"out/test/*.test.js\"",
-    "lint": "eslint ."
+    "lint": "npm run gen:rc && eslint .",
+    "build:labextension": "npm run compile && jupyter labextension build .",
+    "clean": "rm -rf out jupytermeow/labextension"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -19,6 +22,24 @@
     "eslint": "^10.7.0",
     "prettier": "^3.6.0",
     "typescript": "^5.5.0",
-    "typescript-eslint": "^8.63.0"
+    "typescript-eslint": "^8.63.0",
+    "@jupyterlab/builder": "^4.0.0"
+  },
+  "main": "out/labextension/index.js",
+  "dependencies": {
+    "@codemirror/commands": "^6.0.0",
+    "@codemirror/state": "^6.0.0",
+    "@codemirror/view": "^6.0.0",
+    "@jupyterlab/application": "^4.0.0",
+    "@jupyterlab/apputils": "^4.0.0",
+    "@jupyterlab/codemirror": "^4.0.0",
+    "@jupyterlab/settingregistry": "^4.0.0",
+    "@jupyterlab/statusbar": "^4.0.0",
+    "@lumino/widgets": "^2.0.0"
+  },
+  "jupyterlab": {
+    "extension": true,
+    "outputDir": "jupytermeow/labextension",
+    "schemaDir": "schema"
   }
 }

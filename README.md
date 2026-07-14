@@ -1,33 +1,39 @@
 # jupytermeow
 
-Meow-style modal editing for JupyterLab's CodeMirror 6 editors: NORMAL /
-INSERT / MOTION / KEYPAD states, selection-first commands, the char-thing
-table, digit expand with hints, grab / swap-grab / sync-grab, and avy
-jumps (`S` / `Q`). A sibling of
-[codemeow](https://github.com/chubbyhippo/codemeow) (VS Code),
-[ideameow](https://github.com/chubbyhippo/ideameow) (IntelliJ),
-[dbmeow](https://github.com/chubbyhippo/dbmeow) (DBeaver/Eclipse), and
-[notemeow-plus-plus](https://github.com/chubbyhippo/notemeow-plus-plus)
-(Notepad++) — behavior-identical by construction, with a 1:1 ported BDD
-spec suite.
+Meow-style modal editing for JupyterLab, in every CodeMirror editor —
+notebook cells, the file editor, and console prompts.
 
-The whole keymap lives in the bundled `.jupytermeowrc` (QWERTY by
-default, every key rebindable); user rc lines override it entry by entry
-through the JupyterLab Settings editor. The SPC keypad dispatches
-JupyterLab commands by id (`notebook:run-cell`, `docmanager:save`, ...).
+Modal editing in the [meow](https://github.com/meow-edit/meow) tradition:
+NORMAL / INSERT / MOTION / KEYPAD states, selection-first commands, the
+char-thing table, digit expand, grab and sync-grab, and avy-style jumps
+on `S` / `Q`. `SPC` opens a keypad that dispatches JupyterLab commands —
+`SPC r r` runs the current cell, `SPC x s` saves, `SPC m x` opens the
+command palette.
 
-## Status
+The whole keymap is plain text: the bundled `.jupytermeowrc` defines
+every key (QWERTY by default), and you override it line by line in the
+JupyterLab Settings editor (`SPC c m` takes you there). Bind any key to a
+meow command, to a JupyterLab command id with `<action>(...)`, or to a
+replayed key sequence.
 
-The headless core engine and its 278-spec behavior suite are complete
-and green (`./setup.sh`). The JupyterLab adapter (a prebuilt lab
-extension wrapping every CodeMirror 6 editor) is in progress.
-
-## Build & test
+## Install
 
 ```sh
-./setup.sh        # tsc + the full behavior suite via node:test
-npm run lint      # eslint
+./setup.sh
 ```
+
+builds the extension and installs it into the JupyterLab on your PATH,
+then restart JupyterLab. `pip install .` does the same thing by hand.
+
+## Develop
+
+```sh
+./setup.sh --core-only   # the behavior suite: tsc + node:test, sub-second
+npm run lint
+```
+
+The editing engine is plain TypeScript with no JupyterLab imports and a
+full behavior suite; the JupyterLab layer is a thin adapter around it.
 
 ## License
 
