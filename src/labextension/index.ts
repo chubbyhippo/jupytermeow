@@ -311,8 +311,9 @@ const plugin: JupyterFrontEndPlugin<void> = {
     if (settings) {
       void settings.load('jupytermeow:plugin').then((loaded) => {
         applySettings = () => {
-          const lines = (loaded.composite['rcLines'] as string) ?? '';
-          Rc.setUserLines(lines.split('\n'));
+          const lines =
+            (loaded.composite['rcLines'] as readonly string[]) ?? [];
+          Rc.setUserLines([...lines]);
         };
         applySettings();
         loaded.changed.connect(() => {

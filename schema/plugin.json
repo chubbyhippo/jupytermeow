@@ -5,9 +5,10 @@
   "properties": {
     "rcLines": {
       "title": "rc lines",
-      "description": "Overrides for the bundled .jupytermeowrc, one binding per line — e.g. `nmap S <action>(documentsearch:start)` or `map <leader>rr <action>(notebook:run-cell)`. Only the lines you add matter; everything else keeps its bundled default.",
-      "type": "string",
-      "default": ""
+      "description": "Overrides for the bundled .jupytermeowrc, one binding per item — e.g. `nmap S <action>(documentsearch:start)` or `map <leader>rr <action>(notebook:run-cell)`. Only the lines you add matter; everything else keeps its bundled default.",
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
     }
   },
   "additionalProperties": false

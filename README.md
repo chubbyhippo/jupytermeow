@@ -11,10 +11,11 @@ on `S` / `Q`. `SPC` opens a keypad that dispatches JupyterLab commands —
 command palette.
 
 The whole keymap is plain text: the bundled `.jupytermeowrc` defines
-every key (QWERTY by default), and you override it line by line in the
-JupyterLab Settings editor (`SPC c m` takes you there). Bind any key to a
-meow command, to a JupyterLab command id with `<action>(...)`, or to a
-replayed key sequence.
+every key (QWERTY by default), and you override it in the JupyterLab
+Settings editor, where the `rc lines` setting is a list with one binding
+per entry (`SPC c m` takes you there). Bind any key to a meow command, to
+a JupyterLab command id with `<action>(...)`, or to a replayed key
+sequence.
 
 ## Install
 
