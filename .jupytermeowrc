@@ -101,6 +101,8 @@ desc <leader><Space> last tab
 
 desc <leader>x files
 map <leader>xf <action>(filebrowser:open-path)
+" SPC x z = C-x z: repeat the last command (then bare z keeps repeating)
+map <leader>xz repeat
 map <leader>xs <action>(docmanager:save)
 map <leader>xS <action>(docmanager:save-all)
 map <leader>xw <action>(docmanager:save-as)
@@ -230,3 +232,6 @@ repeat tab n <action>(application:activate-next-tab)
 repeat tab p <action>(application:activate-previous-tab)
 repeat tab . <action>(application:activate-next-tab)
 repeat tab , <action>(application:activate-previous-tab)
+
+" Emacs C-x z: after repeat (SPC x z or '), bare z keeps repeating
+repeat replay z repeat
