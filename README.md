@@ -6,7 +6,8 @@ notebook cells, the file editor, and console prompts.
 Modal editing in the [meow](https://github.com/meow-edit/meow) tradition:
 NORMAL / INSERT / MOTION / KEYPAD states, selection-first commands, the
 char-thing table, digit expand, grab and sync-grab, and avy-style jumps
-on `S` / `Q`. `SPC` opens a keypad that dispatches JupyterLab commands —
+on `S` / `Q`, and `SPC w w` labels the open main-area tiles for a
+one-key window jump. `SPC` opens a keypad that dispatches JupyterLab commands —
 `SPC r r` runs the current cell, `SPC x s` saves, `SPC m x` opens the
 command palette.
 

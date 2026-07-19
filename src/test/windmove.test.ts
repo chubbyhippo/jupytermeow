@@ -4,11 +4,30 @@
 
 import { describe, it } from 'node:test';
 import { strict as assert } from 'node:assert';
+import * as Ace from '../core/aceWindow';
 import { Rc } from '../core/rc';
 import { noWindowMessage, plan } from '../core/windmove';
 import { freshSpec } from './helpers';
 
 describe('WindmoveSpec', () => {
+  it('given window rectangles then ace-window orders them left to right then top down', () => {
+    assert.deepEqual(
+      Ace.ordered([
+        { item: 'R', x: 40, y: 0 },
+        { item: 'L2', x: 0, y: 12 },
+        { item: 'L1', x: 0, y: 0 },
+      ]),
+      ['L1', 'L2', 'R'],
+    );
+  });
+
+  it('given one two or many windows then ace-window plans self other or labels', () => {
+    assert.equal(Ace.plan(1), Ace.Plan.None);
+    assert.equal(Ace.plan(2), Ace.Plan.Other);
+    assert.equal(Ace.plan(3), Ace.Plan.Labels);
+    assert.equal(Ace.plan(9), Ace.Plan.Labels);
+  });
+
   it('given a direction then windmove plans the dock-area focus for it', () => {
     assert.equal(plan('left'), 'jupytermeow.focusLeft');
     assert.equal(plan('right'), 'jupytermeow.focusRight');

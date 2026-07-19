@@ -120,7 +120,7 @@ map <leader>wp <action>(application:activate-previous-tab)
 map <leader>w. <action>(application:activate-next-tab)
 map <leader>w, <action>(application:activate-previous-tab)
 " w = focus the next tab area, v = split the current tab, m = move it
-map <leader>ww <action>(application:activate-next-tab-bar)
+map <leader>ww <action>(jupytermeow.aceWindow)
 map <leader>wv <action>(application:split-tab)
 map <leader>wm <action>(application:move-widget)
 map <leader>wh <action>(jupytermeow.windmoveLeft)

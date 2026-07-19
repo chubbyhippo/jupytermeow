@@ -16,6 +16,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import {
+  ILabShell,
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
 } from '@jupyterlab/application';
@@ -31,6 +32,7 @@ import { EditorSelection, Extension, Prec } from '@codemirror/state';
 import { EditorView, ViewPlugin } from '@codemirror/view';
 import { undo as cmUndo } from '@codemirror/commands';
 
+import * as AceCore from '../core/aceWindow';
 import * as Engine from '../core/engine';
 import { MeowMode, MeowState } from '../core/state';
 import {
@@ -43,6 +45,10 @@ import {
 } from '../core/port';
 import { Rc } from '../core/rc';
 import { BUNDLED_RC } from './bundledRc';
+
+const ACE_KEYS = 'asdfghjkl';
+
+let labShellRef: ILabShell | null = null;
 
 class ModeStatus extends Widget {
   private restore = '';
@@ -191,11 +197,78 @@ class LabUi implements UiPort {
       this.hint('rc reloaded');
       return;
     }
+    if (id === 'jupytermeow.aceWindow') {
+      this.aceWindow();
+      return;
+    }
     if (id.startsWith('jupytermeow.')) {
       this.hint(`${id} is not available yet`);
       return;
     }
     await this.app.commands.execute(id);
+  }
+
+  private aceWindow(): void {
+    const shell = labShellRef;
+    if (!shell) {
+      this.hint('ace-window needs the lab shell');
+      return;
+    }
+    const widgets = AceCore.ordered(
+      Array.from(shell.widgets('main'))
+        .filter((w) => w.isVisible)
+        .map((w) => {
+          const r = w.node.getBoundingClientRect();
+          return { item: w, x: r.left, y: r.top };
+        }),
+    );
+    const decision = AceCore.plan(widgets.length);
+    if (decision === AceCore.Plan.None) return;
+    if (decision === AceCore.Plan.Other) {
+      const current = shell.currentWidget;
+      const other = widgets.find((w) => w !== current) ?? widgets[0];
+      shell.activateById(other.id);
+      return;
+    }
+    const byKey = new Map<string, Widget>();
+    const overlays: HTMLElement[] = [];
+    widgets.slice(0, ACE_KEYS.length).forEach((w, i) => {
+      byKey.set(ACE_KEYS[i], w);
+      const r = w.node.getBoundingClientRect();
+      const el = document.createElement('div');
+      el.textContent = ` ${ACE_KEYS[i]} `;
+      el.style.cssText =
+        `position:fixed;left:${r.left}px;top:${r.top}px;z-index:10000;` +
+        'background:#e52b50;color:#ffffff;font-weight:bold;' +
+        'font-family:monospace;padding:1px 4px;';
+      document.body.appendChild(el);
+      overlays.push(el);
+    });
+    const cleanup = (): void => {
+      overlays.forEach((el) => {
+        el.remove();
+      });
+      document.removeEventListener('keydown', onKey, true);
+    };
+    const onKey = (ev: KeyboardEvent): void => {
+      if (ev.key === 'Escape') {
+        ev.preventDefault();
+        ev.stopPropagation();
+        cleanup();
+        return;
+      }
+      if (ev.key.length !== 1) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      const target = byKey.get(ev.key);
+      if (!target) {
+        this.hint(`No such candidate: ${ev.key}`);
+        return;
+      }
+      cleanup();
+      shell.activateById(target.id);
+    };
+    document.addEventListener('keydown', onKey, true);
   }
 
   scheduleWhichKey(): void {}
@@ -288,14 +361,16 @@ const plugin: JupyterFrontEndPlugin<void> = {
   description: 'Meow-style modal editing for every CodeMirror editor.',
   autoStart: true,
   requires: [IEditorExtensionRegistry],
-  optional: [ISettingRegistry, IStatusBar],
+  optional: [ISettingRegistry, IStatusBar, ILabShell],
   activate: (
     app: JupyterFrontEnd,
     registry: IEditorExtensionRegistry,
     settings: ISettingRegistry | null,
     statusBar: IStatusBar | null,
+    labShell: ILabShell | null,
   ) => {
     Rc.initDefaults(BUNDLED_RC.split(/\r?\n/));
+    labShellRef = labShell;
 
     const status = new ModeStatus();
     status.set('MEOW NORMAL');
