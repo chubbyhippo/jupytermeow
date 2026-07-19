@@ -34,7 +34,9 @@ import { undo as cmUndo } from '@codemirror/commands';
 
 import * as AceCore from '../core/aceWindow';
 import * as Engine from '../core/engine';
+import { keypadRows, THINGS } from '../core/whichKey';
 import { MeowMode, MeowState } from '../core/state';
+import * as Overlays from './overlays';
 import {
   ClipboardPort,
   Ctx,
@@ -98,7 +100,9 @@ class CmPort implements EditorPort {
     const clamp = (n: number): number => Math.max(0, Math.min(n, max));
     this.view.dispatch({
       selection: EditorSelection.create(
-        sels.map((s) => EditorSelection.range(clamp(s.anchor), clamp(s.active))),
+        sels.map((s) =>
+          EditorSelection.range(clamp(s.anchor), clamp(s.active)),
+        ),
         0,
       ),
       scrollIntoView: true,
@@ -158,8 +162,13 @@ class WebClipboard implements ClipboardPort {
 }
 
 class LabUi implements UiPort {
+  private whichKeyTimer: number | null = null;
+
+  private whichKeyShown = false;
+
   constructor(
     private readonly app: JupyterFrontEnd,
+    private readonly view: EditorView,
     private readonly status: ModeStatus,
     private readonly reloadRc: () => void,
   ) {}
@@ -271,21 +280,109 @@ class LabUi implements UiPort {
     document.addEventListener('keydown', onKey, true);
   }
 
-  scheduleWhichKey(): void {}
+  scheduleWhichKey(kind: 'keypad' | 'things', buffer: string): void {
+    this.cancelWhichKeyTimer();
+    if (!Rc.whichKeyEnabled()) return;
+    const rows = kind === 'things' ? THINGS : keypadRows(buffer);
+    if (kind === 'keypad' && rows.length === 0) return;
+    const title =
+      kind === 'things'
+        ? 'thing:'
+        : buffer === ''
+          ? 'SPC'
+          : `SPC ${buffer.split('').join(' ')}`;
+    const show = (): void => {
+      this.whichKeyShown = true;
+      this.view.dispatch({ effects: Overlays.setWhichKey.of({ title, rows }) });
+    };
+    if (this.whichKeyShown) {
+      show();
+      return;
+    }
+    this.whichKeyTimer = window.setTimeout(
+      () => {
+        this.whichKeyTimer = null;
+        show();
+      },
+      Math.max(Rc.whichKeyDelayMs(), 0),
+    );
+  }
 
-  hideWhichKey(): void {}
+  hideWhichKey(): void {
+    this.cancelWhichKeyTimer();
+    if (!this.whichKeyShown) return;
+    this.whichKeyShown = false;
+    this.view.dispatch({ effects: Overlays.setWhichKey.of(null) });
+  }
 
-  showExpandHints(): void {}
+  showExpandHints(positions: number[]): void {
+    const labels: Array<[number, string]> = positions.map((p, i) => [
+      p,
+      String((i + 1) % 10),
+    ]);
+    this.view.dispatch({
+      effects: Overlays.hintSlot.set.of(
+        Overlays.labelDecorations(
+          labels,
+          this.view.state.doc.length,
+          'jm-expand-hint',
+        ),
+      ),
+    });
+  }
 
-  clearExpandHints(): void {}
+  clearExpandHints(): void {
+    this.view.dispatch({
+      effects: Overlays.hintSlot.set.of(Overlays.emptyDecorations),
+    });
+  }
 
-  showAvyMatches(): void {}
+  showAvyMatches(ranges: Array<{ start: number; end: number }>): void {
+    this.view.dispatch({
+      effects: Overlays.avyMatchSlot.set.of(
+        Overlays.markDecorations(
+          ranges,
+          this.view.state.doc.length,
+          'jm-avy-match',
+        ),
+      ),
+    });
+  }
 
-  showAvyLabels(): void {}
+  showAvyLabels(labels: Array<[number, string]>): void {
+    this.view.dispatch({
+      effects: Overlays.avyLabelSlot.set.of(
+        Overlays.labelDecorations(
+          labels,
+          this.view.state.doc.length,
+          'jm-avy-label',
+        ),
+      ),
+    });
+  }
 
-  clearAvy(): void {}
+  clearAvy(): void {
+    this.view.dispatch({
+      effects: [
+        Overlays.avyMatchSlot.set.of(Overlays.emptyDecorations),
+        Overlays.avyLabelSlot.set.of(Overlays.emptyDecorations),
+      ],
+    });
+  }
 
-  setGrabHighlight(): void {}
+  setGrabHighlight(range: { start: number; end: number } | null): void {
+    this.view.dispatch({
+      effects: Overlays.grabSlot.set.of(
+        range
+          ? Overlays.markDecorations(
+              [range],
+              this.view.state.doc.length,
+              'jm-grab',
+            )
+          : Overlays.emptyDecorations,
+      ),
+    });
+  }
 
   modeChanged(st: MeowState): void {
     this.refresh(st);
@@ -293,6 +390,18 @@ class LabUi implements UiPort {
 
   refresh(st: MeowState): void {
     this.status.set(`MEOW ${st.mode}`);
+    this.view.dispatch({
+      effects: Overlays.cursorSlot.set.of(
+        Overlays.blockCursorDecorations(this.view, st.mode === MeowMode.INSERT),
+      ),
+    });
+  }
+
+  private cancelWhichKeyTimer(): void {
+    if (this.whichKeyTimer !== null) {
+      window.clearTimeout(this.whichKeyTimer);
+      this.whichKeyTimer = null;
+    }
   }
 }
 
@@ -310,7 +419,7 @@ class MeowView {
     this.ctx = {
       port: new CmPort(view, app),
       clipboard: new WebClipboard(),
-      ui: new LabUi(app, status, reloadRc),
+      ui: new LabUi(app, view, status, reloadRc),
       st,
     };
   }
@@ -334,6 +443,7 @@ function meowExtension(
         if (event.key === 'Escape') {
           if (Engine.escapeKey(ctx)) {
             event.preventDefault();
+            ctx.ui.refresh(ctx.st);
             return true;
           }
           return false;
@@ -342,7 +452,9 @@ function meowExtension(
         if (event.key.length !== 1) return false;
         if (ctx.st.mode === MeowMode.INSERT) return false;
         event.preventDefault();
-        void Engine.handleChar(ctx, event.key);
+        void Engine.handleChar(ctx, event.key).then(() => {
+          ctx.ui.refresh(ctx.st);
+        });
         return true;
       },
       focus: (_event, view): boolean => {
@@ -353,7 +465,16 @@ function meowExtension(
     }),
   );
 
-  return [attachment, keys];
+  const cursorFollowsClicks = EditorView.updateListener.of((update) => {
+    if (!update.selectionSet) return;
+    const meow = update.view.plugin(attachment);
+    if (!meow || meow.ctx.st.mode === MeowMode.INSERT) return;
+    window.setTimeout(() => {
+      if (update.view.plugin(attachment)) meow.ctx.ui.refresh(meow.ctx.st);
+    }, 0);
+  });
+
+  return [Overlays.overlayExtensions(), attachment, keys, cursorFollowsClicks];
 }
 
 const plugin: JupyterFrontEndPlugin<void> = {
