@@ -101,6 +101,7 @@ desc <leader><Space> last tab
 
 desc <leader>x files
 map <leader>xf <action>(filebrowser:open-path)
+map <leader>xj <action>(docmanager:show-in-file-browser)
 " SPC x z = C-x z: repeat the last command (then bare z keeps repeating)
 map <leader>xz repeat
 map <leader>xs <action>(docmanager:save)
