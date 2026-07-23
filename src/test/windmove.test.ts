@@ -8,6 +8,7 @@ import * as Ace from '../core/aceWindow';
 import { Rc } from '../core/rc';
 import { noWindowMessage, plan } from '../core/windmove';
 import { freshSpec } from './helpers';
+import { MeowMode } from '../core/state';
 
 describe('WindmoveSpec', () => {
   it('given window rectangles then ace-window orders them left to right then top down', () => {
@@ -61,5 +62,17 @@ describe('WindmoveSpec', () => {
       Rc.defaults().keypad.get('wv')?.action,
       'application:split-tab',
     );
+  });
+
+  it('given the bundled rc then SPC w r resolves to the ace-resize hint command', async () => {
+    const s = freshSpec();
+    s.given('plain text', '<caret>hello');
+    assert.equal(Rc.defaults().keypad.get('wr')?.command, 'ace-resize');
+    await s.whenKeys(' wr');
+    assert.ok(
+      s.ui.hints.some((h) => h.includes('ace-resize')),
+      'ace-resize surfaces an unavailable hint',
+    );
+    s.thenMode(MeowMode.NORMAL);
   });
 });

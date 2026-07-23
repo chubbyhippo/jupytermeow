@@ -124,6 +124,8 @@ map <leader>w, <action>(application:activate-previous-tab)
 map <leader>ww <action>(jupytermeow.aceWindow)
 map <leader>wv <action>(application:split-tab)
 map <leader>wm <action>(application:move-widget)
+" r acknowledges the resize key with a hint — a divider-resize is not available here
+map <leader>wr ace-resize
 map <leader>wh <action>(jupytermeow.windmoveLeft)
 map <leader>wj <action>(jupytermeow.windmoveDown)
 map <leader>wk <action>(jupytermeow.windmoveUp)
@@ -155,6 +157,19 @@ map <leader>cjc avy-goto-char-timer
 map <leader>cjl avy-goto-line
 
 desc <leader>m M- · meta
+" the M- motion / edit layer: SPC m <key> runs the meta motions and word edits
+map <leader>ma backward-sentence
+map <leader>mb backward-word
+map <leader>mc capitalize-word
+map <leader>md kill-word
+map <leader>me forward-sentence
+map <leader>mf forward-word
+map <leader>ml downcase-word
+map <leader>mu upcase-word
+map <leader>m< beginning-of-buffer
+map <leader>m> end-of-buffer
+map <leader>m{ backward-paragraph
+map <leader>m} forward-paragraph
 map <leader>mx <action>(apputils:activate-command-palette)
 map <leader>mo avy-goto-char-timer
 map <leader>mg avy-goto-line

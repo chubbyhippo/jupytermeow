@@ -110,6 +110,16 @@ describe('RcSpec', () => {
     assert.deepEqual(c.errors, []);
   });
 
+  it('given a cmap or cnoremap line then the rc loads it without error', () => {
+    const c = Rc.parse([
+      'cmap <C-x> <action>(chord.example)',
+      'cnoremap <C-h> <BS>',
+      'nmap Z ,b',
+    ]);
+    assert.deepEqual(c.errors, []);
+    assert.equal(c.normal.get('Z')!.keys, ',b');
+  });
+
   it('which-key settings layer user over bundled defaults', () => {
     const s = freshSpec();
     assert.equal(Rc.whichKeyEnabled(), true);
@@ -160,6 +170,31 @@ describe('RcSpec', () => {
       d.keypad.size > 60,
       `keypad table + ported leader groups (got ${d.keypad.size})`,
     );
+  });
+
+  it('given the bundled defaults then SPC m exposes the M- motion and edit layer', () => {
+    freshSpec();
+    const d = Rc.defaults();
+    assert.equal(d.keypad.get('ma')?.command, 'backward-sentence');
+    assert.equal(d.keypad.get('mb')?.command, 'backward-word');
+    assert.equal(d.keypad.get('mc')?.command, 'capitalize-word');
+    assert.equal(d.keypad.get('md')?.command, 'kill-word');
+    assert.equal(d.keypad.get('me')?.command, 'forward-sentence');
+    assert.equal(d.keypad.get('mf')?.command, 'forward-word');
+    assert.equal(d.keypad.get('ml')?.command, 'downcase-word');
+    assert.equal(d.keypad.get('mu')?.command, 'upcase-word');
+    assert.equal(d.keypad.get('m<')?.command, 'beginning-of-buffer');
+    assert.equal(d.keypad.get('m>')?.command, 'end-of-buffer');
+    assert.equal(d.keypad.get('m{')?.command, 'backward-paragraph');
+    assert.equal(d.keypad.get('m}')?.command, 'forward-paragraph');
+  });
+
+  it('given the SPC m keypad then a meta word motion runs and returns to NORMAL', async () => {
+    const s = freshSpec();
+    s.given('two words', '<caret>hello world');
+    await s.whenKeys(' mf');
+    assert.ok(s.editor.sels[0].active > 0, 'forward-word advanced the caret');
+    s.thenMode(MeowMode.NORMAL);
   });
 
   it('given bad lines then errors are collected with line numbers', () => {
