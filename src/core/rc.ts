@@ -34,10 +34,18 @@ export class Config {
   repeat = new Map<string, Map<string, Binding>>();
   whichKey: boolean | null = null;
   whichKeyDelayMs: number | null = null;
+  overlayColor: string | null = null;
+  overlayTextColor: string | null = null;
+  expandHintColor: string | null = null;
+  grabColor: string | null = null;
   errors: string[] = [];
 }
 
 const DEFAULT_WHICH_KEY_DELAY_MS = 250;
+const DEFAULT_OVERLAY_COLOR = '#e52b50';
+const DEFAULT_OVERLAY_TEXT_COLOR = '#ffffff';
+const DEFAULT_EXPAND_HINT_COLOR = '#2b5db2';
+const DEFAULT_GRAB_COLOR = 'rgba(76, 175, 80, 0.25)';
 
 let userConfig = new Config();
 let defaultConfig = new Config();
@@ -124,6 +132,36 @@ export const Rc = {
       userConfig.whichKeyDelayMs ??
       defaultConfig.whichKeyDelayMs ??
       DEFAULT_WHICH_KEY_DELAY_MS
+    );
+  },
+
+  overlayColor(): string {
+    return (
+      userConfig.overlayColor ??
+      defaultConfig.overlayColor ??
+      DEFAULT_OVERLAY_COLOR
+    );
+  },
+
+  overlayTextColor(): string {
+    return (
+      userConfig.overlayTextColor ??
+      defaultConfig.overlayTextColor ??
+      DEFAULT_OVERLAY_TEXT_COLOR
+    );
+  },
+
+  expandHintColor(): string {
+    return (
+      userConfig.expandHintColor ??
+      defaultConfig.expandHintColor ??
+      DEFAULT_EXPAND_HINT_COLOR
+    );
+  },
+
+  grabColor(): string {
+    return (
+      userConfig.grabColor ?? defaultConfig.grabColor ?? DEFAULT_GRAB_COLOR
     );
   },
 };

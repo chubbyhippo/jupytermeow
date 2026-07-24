@@ -14,6 +14,15 @@
 set which-key
 set timeoutlen=300
 
+" Overlay colors — #RRGGBB, applied to both the light and dark themes.
+" The two label colors below sit at their defaults. expand-hint and grab
+" keep their own built-in defaults (the grab default is translucent), so
+" uncomment a line to pin a solid color of your own.
+set overlay-color=#e52b50
+set overlay-text-color=#ffffff
+" set expand-hint-color=#2b5db2
+" set grab-color=#4caf50
+
 " expand / counts
 nmap 0 meow-expand-0
 nmap 1 meow-expand-1

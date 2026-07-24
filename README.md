@@ -18,6 +18,18 @@ per entry (`SPC c m` takes you there). Bind any key to a meow command, to
 a JupyterLab command id with `<action>(...)`, or to a replayed key
 sequence.
 
+The overlay colors are `set` options too, each a `#RRGGBB` hex applied to
+both the light and dark themes:
+
+- `set overlay-color=#e52b50` — the avy / ace-window label background
+- `set overlay-text-color=#ffffff` — that label's text
+- `set expand-hint-color=#2b5db2` — the 0-9 expand-hint color
+- `set grab-color=#4caf50` — the grab / beacon highlight
+
+The two label colors ship at these defaults; expand-hint and grab keep
+their own built-in defaults until you set them. An unrecognized color key
+is ignored, and a malformed hex is reported like any other rc error.
+
 ## Install
 
 ```sh

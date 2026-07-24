@@ -248,8 +248,8 @@ class LabUi implements UiPort {
       el.textContent = ` ${ACE_KEYS[i]} `;
       el.style.cssText =
         `position:fixed;left:${r.left}px;top:${r.top}px;z-index:10000;` +
-        'background:#e52b50;color:#ffffff;font-weight:bold;' +
-        'font-family:monospace;padding:1px 4px;';
+        `background:${Rc.overlayColor()};color:${Rc.overlayTextColor()};` +
+        'font-weight:bold;font-family:monospace;padding:1px 4px;';
       document.body.appendChild(el);
       overlays.push(el);
     });
@@ -326,6 +326,7 @@ class LabUi implements UiPort {
           labels,
           this.view.state.doc.length,
           'jm-expand-hint',
+          `background-color:${Rc.expandHintColor()}`,
         ),
       ),
     });
@@ -356,6 +357,7 @@ class LabUi implements UiPort {
           labels,
           this.view.state.doc.length,
           'jm-avy-label',
+          `background-color:${Rc.overlayColor()};color:${Rc.overlayTextColor()}`,
         ),
       ),
     });
@@ -378,6 +380,7 @@ class LabUi implements UiPort {
               [range],
               this.view.state.doc.length,
               'jm-grab',
+              `background-color:${Rc.grabColor()}`,
             )
           : Overlays.emptyDecorations,
       ),

@@ -34,17 +34,23 @@ class LabelWidget extends WidgetType {
   constructor(
     private readonly label: string,
     private readonly cls: string,
+    private readonly style: string,
   ) {
     super();
   }
 
   eq(other: LabelWidget): boolean {
-    return other.label === this.label && other.cls === this.cls;
+    return (
+      other.label === this.label &&
+      other.cls === this.cls &&
+      other.style === this.style
+    );
   }
 
   toDOM(): HTMLElement {
     const span = document.createElement('span');
     span.className = this.cls;
+    if (this.style !== '') span.style.cssText = this.style;
     span.textContent = this.label;
     return span;
   }
@@ -87,13 +93,14 @@ export function labelDecorations(
   labels: Array<[number, string]>,
   docLen: number,
   cls: string,
+  style = '',
 ): DecorationSet {
   const ranges = labels
     .filter(([off]) => off >= 0 && off <= docLen)
     .sort((a, b) => a[0] - b[0])
     .map(([off, label]) =>
       Decoration.widget({
-        widget: new LabelWidget(label, cls),
+        widget: new LabelWidget(label, cls, style),
         side: -1,
       }).range(off),
     );
@@ -104,11 +111,16 @@ export function markDecorations(
   ranges: Array<{ start: number; end: number }>,
   docLen: number,
   cls: string,
+  style = '',
 ): DecorationSet {
   const rs = ranges
     .filter((r) => r.start >= 0 && r.start < r.end && r.end <= docLen)
     .sort((a, b) => a.start - b.start)
-    .map((r) => Decoration.mark({ class: cls }).range(r.start, r.end));
+    .map((r) =>
+      Decoration.mark(
+        style === '' ? { class: cls } : { class: cls, attributes: { style } },
+      ).range(r.start, r.end),
+    );
   return Decoration.set(rs);
 }
 
@@ -126,7 +138,7 @@ export function blockCursorDecorations(
   }
   return Decoration.set([
     Decoration.widget({
-      widget: new LabelWidget(' ', 'jm-block-cursor-eol'),
+      widget: new LabelWidget(' ', 'jm-block-cursor-eol', ''),
       side: 1,
     }).range(head),
   ]);
@@ -182,8 +194,6 @@ const overlayTheme = EditorView.baseTheme({
     position: 'absolute',
     top: '0',
     zIndex: '10',
-    backgroundColor: '#e52b50',
-    color: '#ffffff',
     fontWeight: 'bold',
     padding: '0 2px',
   },
@@ -191,13 +201,11 @@ const overlayTheme = EditorView.baseTheme({
     position: 'absolute',
     top: '0',
     zIndex: '10',
-    backgroundColor: '#2b5db2',
     color: '#ffffff',
     fontWeight: 'bold',
     padding: '0 2px',
   },
   '.jm-avy-match': { backgroundColor: 'rgba(255, 220, 0, 0.38)' },
-  '.jm-grab': { backgroundColor: 'rgba(76, 175, 80, 0.25)' },
   '.jm-block-cursor': { backgroundColor: 'rgba(82, 139, 255, 0.55)' },
   '.jm-block-cursor-eol': {
     backgroundColor: 'rgba(82, 139, 255, 0.55)',
