@@ -49,6 +49,7 @@ import { Rc } from '../core/rc';
 import { BUNDLED_RC } from './bundledRc';
 
 const ACE_KEYS = 'asdfghjkl';
+const HINT_FLASH_MS = 2500;
 
 let labShellRef: ILabShell | null = null;
 
@@ -73,7 +74,7 @@ class ModeStatus extends Widget {
     this.timer = window.setTimeout(() => {
       this.timer = null;
       this.node.textContent = this.restore;
-    }, 2500);
+    }, HINT_FLASH_MS);
   }
 }
 

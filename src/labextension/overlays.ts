@@ -113,14 +113,13 @@ export function markDecorations(
   cls: string,
   style = '',
 ): DecorationSet {
+  const mark = Decoration.mark(
+    style === '' ? { class: cls } : { class: cls, attributes: { style } },
+  );
   const rs = ranges
     .filter((r) => r.start >= 0 && r.start < r.end && r.end <= docLen)
     .sort((a, b) => a.start - b.start)
-    .map((r) =>
-      Decoration.mark(
-        style === '' ? { class: cls } : { class: cls, attributes: { style } },
-      ).range(r.start, r.end),
-    );
+    .map((r) => mark.range(r.start, r.end));
   return Decoration.set(rs);
 }
 

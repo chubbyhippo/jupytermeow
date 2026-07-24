@@ -89,13 +89,7 @@ export function nthCharTarget(
   till: boolean,
 ): number {
   let found = -1;
-  let from = backward
-    ? till
-      ? caret - 2
-      : caret - 1
-    : till
-      ? caret + 1
-      : caret;
+  let from = backward ? caret - (till ? 2 : 1) : caret + (till ? 1 : 0);
   for (let k = 0; k < n; k++) {
     found = backward
       ? lastIndexOfChar(text, ch, from)

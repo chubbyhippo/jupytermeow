@@ -92,6 +92,18 @@ async function editCarets(
   ctx.port.setSelections(newSels);
 }
 
+function deleteSelectionOrChar(
+  lo: number,
+  hi: number,
+  docLen: number,
+): { edit: TextEdit | null; sel: SelRange } {
+  const caret: SelRange = { anchor: lo, active: lo };
+  if (lo !== hi) return { edit: { start: lo, end: hi, text: '' }, sel: caret };
+  if (lo < docLen)
+    return { edit: { start: lo, end: lo + 1, text: '' }, sel: caret };
+  return { edit: null, sel: caret };
+}
+
 function insert(ctx: Ctx): void {
   ctx.port.setSelections(
     ctx.port.getSelections().map((s) => {
@@ -145,20 +157,9 @@ async function change(ctx: Ctx): Promise<void> {
   const text = ctx.port.getText();
   const prim = Sel.primary(ctx);
   if (!Sel.hasSelection(prim) && prim.active >= text.length) return;
-  await editCarets(ctx, (_sel, lo, hi) => {
-    if (lo !== hi)
-      return {
-        edit: { start: lo, end: hi, text: '' },
-        sel: { anchor: lo, active: lo },
-      };
-    if (lo < text.length) {
-      return {
-        edit: { start: lo, end: lo + 1, text: '' },
-        sel: { anchor: lo, active: lo },
-      };
-    }
-    return { edit: null, sel: { anchor: lo, active: lo } };
-  });
+  await editCarets(ctx, (_sel, lo, hi) =>
+    deleteSelectionOrChar(lo, hi, text.length),
+  );
   ctx.st.selType = SelType.NONE;
   setMode(ctx, MeowMode.INSERT);
 }
@@ -166,19 +167,9 @@ async function change(ctx: Ctx): Promise<void> {
 async function del(ctx: Ctx): Promise<void> {
   if (blockedReadOnly(ctx)) return;
   const text = ctx.port.getText();
-  await editCarets(ctx, (_sel, lo, hi) => {
-    if (lo !== hi)
-      return {
-        edit: { start: lo, end: hi, text: '' },
-        sel: { anchor: lo, active: lo },
-      };
-    if (lo < text.length)
-      return {
-        edit: { start: lo, end: lo + 1, text: '' },
-        sel: { anchor: lo, active: lo },
-      };
-    return { edit: null, sel: { anchor: lo, active: lo } };
-  });
+  await editCarets(ctx, (_sel, lo, hi) =>
+    deleteSelectionOrChar(lo, hi, text.length),
+  );
   ctx.st.selType = SelType.NONE;
 }
 
