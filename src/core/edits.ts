@@ -65,14 +65,14 @@ async function editCarets(
 ): Promise<void> {
   const sels = ctx.port.getSelections();
   const order = sels
-    .map((sel, index) => ({ sel, index, lo: Math.min(sel.anchor, sel.active) }))
+    .map((sel, index) => ({ sel, index, lo: Sel.lo(sel) }))
     .sort((a, b) => b.lo - a.lo);
   const edits: TextEdit[] = [];
   const results = new Array<{ edit: TextEdit | null; sel: SelRange }>(
     sels.length,
   );
   for (const item of order) {
-    const hi = Math.max(item.sel.anchor, item.sel.active);
+    const hi = Sel.hi(item.sel);
     const r = compute(item.sel, item.lo, hi);
     if (r.edit) edits.push(r.edit);
     results[item.index] = r;
@@ -107,7 +107,7 @@ function deleteSelectionOrChar(
 function insert(ctx: Ctx): void {
   ctx.port.setSelections(
     ctx.port.getSelections().map((s) => {
-      const o = Math.min(s.anchor, s.active);
+      const o = Sel.lo(s);
       return { anchor: o, active: o };
     }),
   );
@@ -119,7 +119,7 @@ function insert(ctx: Ctx): void {
 function append(ctx: Ctx): void {
   ctx.port.setSelections(
     ctx.port.getSelections().map((s) => {
-      const o = Math.max(s.anchor, s.active);
+      const o = Sel.hi(s);
       return { anchor: o, active: o };
     }),
   );
@@ -196,8 +196,8 @@ function killRange(
   sel: SelRange,
   text: string,
 ): { lo: number; hi: number } {
-  const lo = Math.min(sel.anchor, sel.active);
-  let hi = Math.max(sel.anchor, sel.active);
+  const lo = Sel.lo(sel);
+  let hi = Sel.hi(sel);
   if (
     ctx.st.selType === SelType.LINE &&
     sel.active >= sel.anchor &&
@@ -212,9 +212,7 @@ function killRange(
 function regionsInOrder(sels: SelRange[]): SelRange[] {
   return sels
     .filter((s) => s.anchor !== s.active)
-    .sort(
-      (a, b) => Math.min(a.anchor, a.active) - Math.min(b.anchor, b.active),
-    );
+    .sort((a, b) => Sel.lo(a) - Sel.lo(b));
 }
 
 function joinedKillText(ctx: Ctx, text: string, regions: SelRange[]): string {
@@ -267,8 +265,8 @@ async function kill(ctx: Ctx): Promise<void> {
 async function joinKill(ctx: Ctx): Promise<void> {
   const text = ctx.port.getText();
   const prim = Sel.primary(ctx);
-  const s = Math.min(prim.anchor, prim.active);
-  const e = Math.max(prim.anchor, prim.active);
+  const s = Sel.lo(prim);
+  const e = Sel.hi(prim);
   const before = s > 0 ? text[s - 1] : '\n';
   const after = e < text.length ? text[e] : '\n';
   const space =
