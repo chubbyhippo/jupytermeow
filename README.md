@@ -21,7 +21,7 @@ sequence.
 The overlay colors are `set` options too, each a `#RRGGBB` hex applied to
 both the light and dark themes:
 
-- `set overlay-color=#e52b50` — the avy / ace-window label background
+- `set overlay-color=#2ecc71` — the avy / ace-window label background
 - `set overlay-text-color=#ffffff` — that label's text
 - `set expand-hint-color=#2b5db2` — the 0-9 expand-hint color
 - `set grab-color=#4caf50` — the grab / beacon highlight

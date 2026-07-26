@@ -18,7 +18,7 @@ set timeoutlen=300
 " The two label colors below sit at their defaults. expand-hint and grab
 " keep their own built-in defaults (the grab default is translucent), so
 " uncomment a line to pin a solid color of your own.
-set overlay-color=#e52b50
+set overlay-color=#2ecc71
 set overlay-text-color=#ffffff
 " set expand-hint-color=#2b5db2
 " set grab-color=#4caf50

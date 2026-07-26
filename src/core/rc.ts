@@ -42,7 +42,7 @@ export class Config {
 }
 
 const DEFAULT_WHICH_KEY_DELAY_MS = 250;
-const DEFAULT_OVERLAY_COLOR = '#e52b50';
+const DEFAULT_OVERLAY_COLOR = '#2ecc71';
 const DEFAULT_OVERLAY_TEXT_COLOR = '#ffffff';
 const DEFAULT_EXPAND_HINT_COLOR = '#2b5db2';
 const DEFAULT_GRAB_COLOR = 'rgba(76, 175, 80, 0.25)';
