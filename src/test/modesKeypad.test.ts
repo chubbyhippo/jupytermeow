@@ -17,6 +17,14 @@ describe('ModesKeypadSpec', () => {
     s.thenMode(MeowMode.NORMAL);
   });
 
+  it('given a selection in NORMAL when escape then it collapses to the caret', async () => {
+    const s = freshSpec();
+    s.given('words', '<caret>hello world');
+    await s.whenKeys('w');
+    assert.equal(s.pressEsc(), true);
+    s.thenNoSelection();
+  });
+
   it('given beacon cursors in NORMAL when escape then they collapse', async () => {
     const s = freshSpec();
     s.given('repeats', '<caret>foo bar foo');
