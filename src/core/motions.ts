@@ -18,9 +18,11 @@
 import { Ctx, SelRange } from './port';
 import { Pending, SelType } from './state';
 import {
+  Words,
   charPred,
   clamp,
   escapeRegExp,
+  isBlank,
   lineCount,
   lineEnd,
   lineOfOffset,
@@ -30,7 +32,6 @@ import {
   nthCharTarget,
   prevParagraphStart,
   prevSentenceStart,
-  Words,
 } from './text';
 import { MeowCommand } from './command';
 import * as Sel from './selections';
@@ -87,6 +88,7 @@ export const commands: Map<string, MeowCommand> = new Map([
   ],
   ['move-beginning-of-line', beginningOfLine],
   ['move-end-of-line', endOfLine],
+  ['back-to-indentation', backToIndentation],
   ['forward-word', counted(wordOrExpand)],
   ['backward-word', counted(wordOrExpand, BACKWARD)],
   ['forward-sentence', counted(sentenceOrExpand)],
@@ -138,6 +140,10 @@ function endOfLine(ctx: Ctx): void {
   moveToOrExpand(ctx, SelType.CHAR, lineEndTarget);
 }
 
+function backToIndentation(ctx: Ctx): void {
+  moveToOrExpand(ctx, SelType.CHAR, indentationTarget);
+}
+
 function beginningOfBuffer(ctx: Ctx): void {
   bufferBoundary(ctx, true);
 }
@@ -153,6 +159,14 @@ const lineStartTarget: OffsetTarget = (text, off) =>
 
 const lineEndTarget: OffsetTarget = (text, off) =>
   lineEnd(text, lineOfOffset(text, off));
+
+const indentationTarget: OffsetTarget = (text, off) => {
+  const line = lineOfOffset(text, off);
+  const end = lineEnd(text, line);
+  let at = lineStart(text, line);
+  while (at < end && isBlank(text.charAt(at))) at++;
+  return at;
+};
 
 const wordType = (symbol: boolean) => (symbol ? SelType.SYMBOL : SelType.WORD);
 
