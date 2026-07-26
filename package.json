@@ -11,16 +11,17 @@
     "gen:rc": "node -e \"const fs=require('fs');fs.writeFileSync('src/labextension/bundledRc.ts','export const BUNDLED_RC: string = '+JSON.stringify(fs.readFileSync('.jupytermeowrc','utf8'))+';\\n')\"",
     "compile": "npm run gen:rc && tsc -p ./",
     "watch": "tsc -w -p ./",
-    "test": "npm run compile && node --test \"out/test/*.test.js\"",
-    "lint": "npm run gen:rc && eslint .",
-    "build:labextension": "npm run compile && jupyter labextension build .",
+    "lint": "npm run gen:rc && eslint . --max-warnings 0 && prettier --check .",
+    "check": "npm run compile && npm run lint",
+    "test": "npm run check && node --test \"out/test/*.test.js\"",
+    "build:labextension": "npm run check && jupyter labextension build .",
     "clean": "rm -rf out jupytermeow/labextension"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^20.14.0",
     "eslint": "^10.7.0",
-    "prettier": "^3.6.0",
+    "prettier": "3.9.5",
     "typescript": "^5.5.0",
     "typescript-eslint": "^8.63.0",
     "@jupyterlab/builder": "^4.0.0"

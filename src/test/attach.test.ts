@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // (see LICENSE for the full GPL-3.0-or-later text)
 
-import { describe, it } from 'node:test';
 import { strict as assert } from 'node:assert';
+import { describe, it } from './helpers';
 import { attachMode, isWritableSurface } from '../core/attachPolicy';
 import { MeowMode } from '../core/state';
 

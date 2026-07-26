@@ -29,18 +29,20 @@ import { MeowCommand } from './command';
 import * as Sel from './selections';
 
 export const commands: Map<string, MeowCommand> = new Map([
-  ['meow-inner-of-thing', (ctx: Ctx) => pendThing(ctx, Pending.INNER)],
-  ['meow-bounds-of-thing', (ctx: Ctx) => pendThing(ctx, Pending.BOUNDS)],
-  ['meow-beginning-of-thing', (ctx: Ctx) => pendThing(ctx, Pending.BEGIN)],
-  ['meow-end-of-thing', (ctx: Ctx) => pendThing(ctx, Pending.END)],
-  ['meow-block', (ctx: Ctx) => block(ctx)],
-  ['meow-to-block', (ctx: Ctx) => toBlock(ctx)],
-  ['meow-join', (ctx: Ctx) => join(ctx)],
+  ['meow-inner-of-thing', awaitingThing(Pending.INNER)],
+  ['meow-bounds-of-thing', awaitingThing(Pending.BOUNDS)],
+  ['meow-beginning-of-thing', awaitingThing(Pending.BEGIN)],
+  ['meow-end-of-thing', awaitingThing(Pending.END)],
+  ['meow-block', block],
+  ['meow-to-block', toBlock],
+  ['meow-join', join],
 ]);
 
-function pendThing(ctx: Ctx, p: Pending): void {
-  ctx.st.pending = p;
-  ctx.ui.scheduleWhichKey('things', '');
+function awaitingThing(p: Pending): MeowCommand {
+  return (ctx) => {
+    ctx.st.pending = p;
+    ctx.ui.scheduleWhichKey('things', '');
+  };
 }
 
 export async function thingSelect(
@@ -103,8 +105,7 @@ function enclosingPair(text: string, s: number, e: number): PairRange | null {
       stack.push(i);
     } else if (closes.includes(c)) {
       const kind = closes.indexOf(c);
-      while (stack.length > 0) {
-        const o = stack.pop()!;
+      for (let o = stack.pop(); o !== undefined; o = stack.pop()) {
         if (opens.indexOf(text[o]) === kind) {
           if (
             o < s &&

@@ -25,7 +25,7 @@ export function parse(lines: string[]): Config {
   const c = new Config();
   lines.forEach((raw, i) => {
     let line = raw.trim();
-    const err = (msg: string) => c.errors.push(`line ${i + 1}: ${msg}`);
+    const err = (msg: string) => c.errors.push(`line ${String(i + 1)}: ${msg}`);
 
     if (line === '' || line.startsWith('"') || line.startsWith('#')) return;
 
@@ -39,9 +39,9 @@ export function parse(lines: string[]): Config {
     if (cut >= 0) line = line.slice(0, cut).trimEnd();
     if (line === '') return;
 
-    const m = /^(\S+)(?:\s+(.*))?$/.exec(line)!;
-    const cmd = m[1];
-    const rest = (m[2] ?? '').trim();
+    const firstSpace = line.search(/\s/);
+    const cmd = firstSpace < 0 ? line : line.slice(0, firstSpace);
+    const rest = firstSpace < 0 ? '' : line.slice(firstSpace + 1).trim();
     switch (cmd) {
       case 'let':
       case 'cmap':

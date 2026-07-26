@@ -25,9 +25,9 @@ import * as Edits from './edits';
 const MAX_GRAB_SYNC_MATCHES = 500;
 
 export const commands: Map<string, MeowCommand> = new Map([
-  ['meow-grab', (ctx: Ctx) => grab(ctx)],
-  ['meow-sync-grab', (ctx: Ctx) => sync(ctx)],
-  ['meow-swap-grab', (ctx: Ctx) => swap(ctx)],
+  ['meow-grab', grab],
+  ['meow-sync-grab', sync],
+  ['meow-swap-grab', swap],
 ]);
 
 function clear(ctx: Ctx): void {

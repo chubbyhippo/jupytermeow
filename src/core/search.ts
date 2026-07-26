@@ -24,8 +24,8 @@ import * as Sel from './selections';
 const SEARCH_RING_LIMIT = 50;
 
 export const commands: Map<string, MeowCommand> = new Map([
-  ['meow-search', (ctx: Ctx) => search(ctx)],
-  ['meow-visit', (ctx: Ctx) => visit(ctx)],
+  ['meow-search', search],
+  ['meow-visit', visit],
 ]);
 
 export function push(st: MeowState, pattern: string): void {
@@ -110,13 +110,10 @@ function searchWith(ctx: Ctx, pattern: string, backward: boolean): void {
   const matches = allMatches(text, pattern);
   let m: Match | undefined;
   if (!backward) {
-    m = matches.find((x) => x.start >= caret) ?? matches[0];
+    m = matches.find((x) => x.start >= caret) ?? matches.at(0);
   } else {
     const before = matches.filter((x) => x.end <= caret);
-    m =
-      before.length > 0
-        ? before[before.length - 1]
-        : matches[matches.length - 1];
+    m = before.at(-1) ?? matches.at(-1);
   }
   if (!m) {
     ctx.ui.hint(`No match: ${pattern}`);

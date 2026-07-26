@@ -2,9 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // (see LICENSE for the full GPL-3.0-or-later text)
 
-import { describe, it } from 'node:test';
 import { strict as assert } from 'node:assert';
-import { freshSpec } from './helpers';
+import { describe, freshSpec, it, must } from './helpers';
 import { MeowMode } from '../core/state';
 
 describe('GrabBeaconSpec', () => {
@@ -29,7 +28,7 @@ describe('GrabBeaconSpec', () => {
     s.thenText('three two one');
     s.thenNoSelection();
     assert.equal(
-      s.editor.text.slice(s.st.grab!.start, s.st.grab!.end),
+      s.editor.text.slice(must(s.st.grab).start, must(s.st.grab).end),
       'three',
       'grab now holds the swapped-in text',
     );
@@ -69,8 +68,8 @@ describe('GrabBeaconSpec', () => {
     s.givenCaretAt(6);
     await s.whenKeys('wY');
     s.thenNoSelection();
-    assert.equal(s.st.grab!.start, 6);
-    assert.equal(s.st.grab!.end, 11);
+    assert.equal(must(s.st.grab).start, 6);
+    assert.equal(must(s.st.grab).end, 11);
   });
 
   it('given a grab when marking a word inside it then a cursor lands on every occurrence (BEACON)', async () => {

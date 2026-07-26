@@ -2,9 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // (see LICENSE for the full GPL-3.0-or-later text)
 
-import { describe, it } from 'node:test';
 import { strict as assert } from 'node:assert';
-import { freshSpec } from './helpers';
+import { describe, freshSpec, it, mustGet } from './helpers';
 import * as Engine from '../core/engine';
 import { Rc } from '../core/rc';
 import { RcState } from '../core/rcState';
@@ -23,10 +22,11 @@ describe('RepeatSpec', () => {
       'repeat nav , meow-prev',
       'repeat zoom i <action>(editor.action.fontZoomIn)',
     ]);
-    assert.equal(c.repeat.get('nav')!.get('.')!.command, 'meow-next');
-    assert.equal(c.repeat.get('nav')!.get(',')!.command, 'meow-prev');
+    const nav = mustGet(c.repeat, 'nav');
+    assert.equal(mustGet(nav, '.').command, 'meow-next');
+    assert.equal(mustGet(nav, ',').command, 'meow-prev');
     assert.equal(
-      c.repeat.get('zoom')!.get('i')!.action,
+      mustGet(mustGet(c.repeat, 'zoom'), 'i').action,
       'editor.action.fontZoomIn',
     );
     assert.deepEqual(c.errors, []);
@@ -51,57 +51,39 @@ describe('RepeatSpec', () => {
     s.givenRc(
       'repeat zoom , meow-prev\nrepeat zoom e <action>(application:toggle-header)',
     );
-    const g = Rc.repeatGroups().get('zoom')!;
-    assert.equal(g.get('i')!.action, 'application:zoom-in-widget');
-    assert.equal(g.get(',')!.command, 'meow-prev');
-    assert.equal(g.get('e')!.action, 'application:toggle-header');
+    const g = mustGet(Rc.repeatGroups(), 'zoom');
+    assert.equal(mustGet(g, 'i').action, 'application:zoom-in-widget');
+    assert.equal(mustGet(g, ',').command, 'meow-prev');
+    assert.equal(mustGet(g, 'e').action, 'application:toggle-header');
   });
 
   it('given a repeat member bound to ignore then the key is given back', () => {
     const s = freshSpec();
     s.givenRc('repeat zoom 0 ignore');
-    const g = Rc.repeatGroups().get('zoom')!;
+    const g = mustGet(Rc.repeatGroups(), 'zoom');
     assert.equal(g.has('0'), false);
-    assert.equal(g.get('i')!.action, 'application:zoom-in-widget');
+    assert.equal(mustGet(g, 'i').action, 'application:zoom-in-widget');
   });
 
   it('the bundled default jupytermeowrc declares the init el repeat groups', () => {
     freshSpec();
-    const d = Rc.defaults().repeat;
+    const zoom = mustGet(Rc.defaults().repeat, 'zoom');
     assert.deepEqual(
-      new Set(d.get('zoom')!.keys()),
+      new Set(zoom.keys()),
       new Set(['i', '=', 'o', '-', 'u', '0']),
     );
-    assert.equal(d.get('zoom')!.get('i')!.action, 'application:zoom-in-widget');
-    assert.equal(
-      d.get('zoom')!.get('u')!.action,
-      'application:reset-widget-zoom',
-    );
+    assert.equal(mustGet(zoom, 'i').action, 'application:zoom-in-widget');
+    assert.equal(mustGet(zoom, 'u').action, 'application:reset-widget-zoom');
   });
 
   it('given the bundled rc then the tab repeat group cycles editor tabs', () => {
     freshSpec();
-    const d = Rc.defaults().repeat;
-    assert.equal(
-      d.get('tab')!.get('n')!.action,
-      'application:activate-next-tab',
-    );
-    assert.equal(
-      d.get('tab')!.get('p')!.action,
-      'application:activate-previous-tab',
-    );
-    assert.equal(
-      d.get('tab')!.get('.')!.action,
-      'application:activate-next-tab',
-    );
-    assert.equal(
-      d.get('tab')!.get(',')!.action,
-      'application:activate-previous-tab',
-    );
-    assert.deepEqual(
-      new Set(d.get('tab')!.keys()),
-      new Set(['n', 'p', '.', ',']),
-    );
+    const tab = mustGet(Rc.defaults().repeat, 'tab');
+    assert.equal(mustGet(tab, 'n').action, 'application:activate-next-tab');
+    assert.equal(mustGet(tab, 'p').action, 'application:activate-previous-tab');
+    assert.equal(mustGet(tab, '.').action, 'application:activate-next-tab');
+    assert.equal(mustGet(tab, ',').action, 'application:activate-previous-tab');
+    assert.deepEqual(new Set(tab.keys()), new Set(['n', 'p', '.', ',']));
   });
 
   it('given a repeat line edit then the reload button sees a change', () => {

@@ -16,6 +16,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { strict as assert } from 'node:assert';
+import { describe as nodeDescribe, it as nodeIt } from 'node:test';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as Engine from '../core/engine';
@@ -31,6 +32,25 @@ import {
 import { Config, Rc } from '../core/rc';
 import { MeowMode, MeowState, SelType } from '../core/state';
 import { lineOfOffset } from '../core/text';
+
+type SpecBody = () => void | Promise<void>;
+
+export function describe(suite: string, body: () => void): void {
+  void nodeDescribe(suite, body);
+}
+
+export function it(sentence: string, body: SpecBody): void {
+  void nodeIt(sentence, body);
+}
+
+export function must<T>(value: T | null | undefined, what = 'a value'): T {
+  assert.ok(value !== null && value !== undefined, `expected ${what}`);
+  return value;
+}
+
+export function mustGet<V>(entries: ReadonlyMap<string, V>, key: string): V {
+  return must(entries.get(key), `an entry for '${key}'`);
+}
 
 class FakeEditor implements EditorPort {
   text = '';
@@ -50,10 +70,11 @@ class FakeEditor implements EditorPort {
     this.sels = sels.map((s) => ({ ...s }));
   }
 
-  async edit(edits: TextEdit[]): Promise<void> {
+  edit(edits: TextEdit[]): Promise<void> {
     for (const e of [...edits].sort((a, b) => b.start - a.start)) {
       this.text = this.text.slice(0, e.start) + e.text + this.text.slice(e.end);
     }
+    return Promise.resolve();
   }
 
   isWritable(): boolean {
@@ -66,26 +87,30 @@ class FakeEditor implements EditorPort {
 
   undoCount = 0;
 
-  async undo(): Promise<void> {
+  undo(): Promise<void> {
     this.undoCount++;
+    return Promise.resolve();
   }
 
-  async closeEditor(): Promise<void> {}
+  closeEditor(): Promise<void> {
+    return Promise.resolve();
+  }
 
-  async symbolRangeAt(): Promise<{ start: number; end: number } | null> {
-    return null;
+  symbolRangeAt(): Promise<{ start: number; end: number } | null> {
+    return Promise.resolve(null);
   }
 }
 
 class FakeClipboard implements ClipboardPort {
   content: string | undefined;
 
-  async read(): Promise<string | undefined> {
-    return this.content;
+  read(): Promise<string | undefined> {
+    return Promise.resolve(this.content);
   }
 
-  async write(text: string): Promise<void> {
+  write(text: string): Promise<void> {
     this.content = text;
+    return Promise.resolve();
   }
 }
 
@@ -103,12 +128,13 @@ class FakeUi implements UiPort {
     this.infos.push([title, body]);
   }
 
-  async input(): Promise<string | undefined> {
-    return this.answers.shift();
+  input(): Promise<string | undefined> {
+    return Promise.resolve(this.answers.shift());
   }
 
-  async runCommand(id: string): Promise<void> {
+  runCommand(id: string): Promise<void> {
     this.ran.push(id);
+    return Promise.resolve();
   }
 
   modes: MeowMode[] = [];

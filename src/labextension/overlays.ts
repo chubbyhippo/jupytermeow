@@ -39,7 +39,7 @@ class LabelWidget extends WidgetType {
     super();
   }
 
-  eq(other: LabelWidget): boolean {
+  override eq(other: LabelWidget): boolean {
     return (
       other.label === this.label &&
       other.cls === this.cls &&
@@ -47,7 +47,7 @@ class LabelWidget extends WidgetType {
     );
   }
 
-  toDOM(): HTMLElement {
+  override toDOM(): HTMLElement {
     const span = document.createElement('span');
     span.className = this.cls;
     if (this.style !== '') span.style.cssText = this.style;
@@ -55,7 +55,7 @@ class LabelWidget extends WidgetType {
     return span;
   }
 
-  ignoreEvent(): boolean {
+  override ignoreEvent(): boolean {
     return true;
   }
 }

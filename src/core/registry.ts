@@ -47,7 +47,12 @@ export const COMMANDS: Map<string, MeowCommand> = new Map([
     },
   ],
   ['meow-quit', (ctx: Ctx) => ctx.port.closeEditor()],
-  ['meow-keypad', (ctx: Ctx) => Engine.enterKeypad(ctx)],
+  [
+    'meow-keypad',
+    (ctx: Ctx) => {
+      Engine.enterKeypad(ctx);
+    },
+  ],
   ['repeat', (ctx: Ctx) => Engine.repeatLast(ctx)],
   [
     'ace-resize',

@@ -34,23 +34,23 @@ export function blockedReadOnly(ctx: Ctx): boolean {
 }
 
 export const commands: Map<string, MeowCommand> = new Map([
-  ['meow-insert', (ctx: Ctx) => insert(ctx)],
-  ['meow-append', (ctx: Ctx) => append(ctx)],
-  ['meow-open-above', (ctx: Ctx) => openAbove(ctx)],
-  ['meow-open-below', (ctx: Ctx) => openBelow(ctx)],
-  ['meow-change', (ctx: Ctx) => change(ctx)],
-  ['meow-delete', (ctx: Ctx) => del(ctx)],
-  ['meow-backward-delete', (ctx: Ctx) => backwardDelete(ctx)],
-  ['meow-kill', (ctx: Ctx) => kill(ctx)],
-  ['meow-save', (ctx: Ctx) => save(ctx)],
-  ['meow-yank', (ctx: Ctx) => yank(ctx)],
-  ['meow-replace', (ctx: Ctx) => replace(ctx)],
-  ['meow-undo', (ctx: Ctx) => undo(ctx)],
-  ['meow-undo-in-selection', (ctx: Ctx) => undoInSelection(ctx)],
+  ['meow-insert', insert],
+  ['meow-append', append],
+  ['meow-open-above', openAbove],
+  ['meow-open-below', openBelow],
+  ['meow-change', change],
+  ['meow-delete', del],
+  ['meow-backward-delete', backwardDelete],
+  ['meow-kill', kill],
+  ['meow-save', save],
+  ['meow-yank', yank],
+  ['meow-replace', replace],
+  ['meow-undo', undo],
+  ['meow-undo-in-selection', undoInSelection],
   ['upcase-word', (ctx: Ctx) => caseWord(ctx, 'upcase')],
   ['downcase-word', (ctx: Ctx) => caseWord(ctx, 'downcase')],
   ['capitalize-word', (ctx: Ctx) => caseWord(ctx, 'capitalize')],
-  ['kill-word', (ctx: Ctx) => killWord(ctx)],
+  ['kill-word', killWord],
 ]);
 
 type CaseOp = 'upcase' | 'downcase' | 'capitalize';

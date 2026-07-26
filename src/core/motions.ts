@@ -37,32 +37,26 @@ import * as Sel from './selections';
 import * as Grab from './grab';
 import * as Search from './search';
 
+const FORWARD = 1;
+const BACKWARD = -1;
+
 export const commands: Map<string, MeowCommand> = new Map([
-  ['meow-left', (ctx: Ctx) => moveChar(ctx, -ctx.st.takeCount(1))],
-  ['meow-right', (ctx: Ctx) => moveChar(ctx, ctx.st.takeCount(1))],
-  ['meow-next', (ctx: Ctx) => moveLine(ctx, ctx.st.takeCount(1))],
-  ['meow-prev', (ctx: Ctx) => moveLine(ctx, -ctx.st.takeCount(1))],
-  ['meow-left-expand', (ctx: Ctx) => moveExpand(ctx, -ctx.st.takeCount(1), 0)],
-  ['meow-right-expand', (ctx: Ctx) => moveExpand(ctx, ctx.st.takeCount(1), 0)],
-  ['meow-next-expand', (ctx: Ctx) => moveExpand(ctx, 0, ctx.st.takeCount(1))],
-  ['meow-prev-expand', (ctx: Ctx) => moveExpand(ctx, 0, -ctx.st.takeCount(1))],
-  ['meow-next-word', (ctx: Ctx) => wordMotion(ctx, false, ctx.st.takeCount(1))],
-  [
-    'meow-next-symbol',
-    (ctx: Ctx) => wordMotion(ctx, true, ctx.st.takeCount(1)),
-  ],
-  [
-    'meow-back-word',
-    (ctx: Ctx) => wordMotion(ctx, false, -ctx.st.takeCount(1)),
-  ],
-  [
-    'meow-back-symbol',
-    (ctx: Ctx) => wordMotion(ctx, true, -ctx.st.takeCount(1)),
-  ],
-  ['meow-mark-word', (ctx: Ctx) => markWord(ctx, false)],
-  ['meow-mark-symbol', (ctx: Ctx) => markWord(ctx, true)],
-  ['meow-line', (ctx: Ctx) => line(ctx)],
-  ['meow-goto-line', (ctx: Ctx) => gotoLine(ctx)],
+  ['meow-left', counted(moveChar, BACKWARD)],
+  ['meow-right', counted(moveChar)],
+  ['meow-next', counted(moveLine)],
+  ['meow-prev', counted(moveLine, BACKWARD)],
+  ['meow-left-expand', counted(expandChars, BACKWARD)],
+  ['meow-right-expand', counted(expandChars)],
+  ['meow-next-expand', counted(expandLines)],
+  ['meow-prev-expand', counted(expandLines, BACKWARD)],
+  ['meow-next-word', counted(wordEnd)],
+  ['meow-next-symbol', counted(symbolEnd)],
+  ['meow-back-word', counted(wordEnd, BACKWARD)],
+  ['meow-back-symbol', counted(symbolEnd, BACKWARD)],
+  ['meow-mark-word', markWord],
+  ['meow-mark-symbol', markSymbol],
+  ['meow-line', line],
+  ['meow-goto-line', gotoLine],
   [
     'meow-find',
     (ctx: Ctx) => {
@@ -75,8 +69,8 @@ export const commands: Map<string, MeowCommand> = new Map([
       ctx.st.pending = Pending.TILL;
     },
   ],
-  ['forward-char', (ctx: Ctx) => charOrExpand(ctx, ctx.st.takeCount(1))],
-  ['backward-char', (ctx: Ctx) => charOrExpand(ctx, -ctx.st.takeCount(1))],
+  ['forward-char', counted(charOrExpand)],
+  ['backward-char', counted(charOrExpand, BACKWARD)],
   [
     'next-line',
     (ctx: Ctx) => {
@@ -91,35 +85,66 @@ export const commands: Map<string, MeowCommand> = new Map([
       ctx.st.lastCommand = 'previous-line';
     },
   ],
-  [
-    'move-beginning-of-line',
-    (ctx: Ctx) => moveToOrExpand(ctx, SelType.CHAR, lineStartTarget),
-  ],
-  [
-    'move-end-of-line',
-    (ctx: Ctx) => moveToOrExpand(ctx, SelType.CHAR, lineEndTarget),
-  ],
-  ['forward-word', (ctx: Ctx) => wordOrExpand(ctx, ctx.st.takeCount(1))],
-  ['backward-word', (ctx: Ctx) => wordOrExpand(ctx, -ctx.st.takeCount(1))],
-  [
-    'forward-sentence',
-    (ctx: Ctx) => sentenceOrExpand(ctx, ctx.st.takeCount(1)),
-  ],
-  [
-    'backward-sentence',
-    (ctx: Ctx) => sentenceOrExpand(ctx, -ctx.st.takeCount(1)),
-  ],
-  ['beginning-of-buffer', (ctx: Ctx) => bufferBoundary(ctx, true)],
-  ['end-of-buffer', (ctx: Ctx) => bufferBoundary(ctx, false)],
-  [
-    'forward-paragraph',
-    (ctx: Ctx) => paragraphOrExpand(ctx, ctx.st.takeCount(1)),
-  ],
-  [
-    'backward-paragraph',
-    (ctx: Ctx) => paragraphOrExpand(ctx, -ctx.st.takeCount(1)),
-  ],
+  ['move-beginning-of-line', beginningOfLine],
+  ['move-end-of-line', endOfLine],
+  ['forward-word', counted(wordOrExpand)],
+  ['backward-word', counted(wordOrExpand, BACKWARD)],
+  ['forward-sentence', counted(sentenceOrExpand)],
+  ['backward-sentence', counted(sentenceOrExpand, BACKWARD)],
+  ['beginning-of-buffer', beginningOfBuffer],
+  ['end-of-buffer', endOfBuffer],
+  ['forward-paragraph', counted(paragraphOrExpand)],
+  ['backward-paragraph', counted(paragraphOrExpand, BACKWARD)],
 ]);
+
+function counted(
+  move: (ctx: Ctx, count: number) => void,
+  direction: number = FORWARD,
+): MeowCommand {
+  return (ctx) => {
+    move(ctx, direction * ctx.st.takeCount(1));
+  };
+}
+
+function expandChars(ctx: Ctx, count: number): void {
+  moveExpand(ctx, count, 0);
+}
+
+function expandLines(ctx: Ctx, count: number): void {
+  moveExpand(ctx, 0, count);
+}
+
+function wordEnd(ctx: Ctx, count: number): void {
+  wordMotion(ctx, false, count);
+}
+
+function symbolEnd(ctx: Ctx, count: number): void {
+  wordMotion(ctx, true, count);
+}
+
+function markWord(ctx: Ctx): void {
+  mark(ctx, false);
+}
+
+function markSymbol(ctx: Ctx): void {
+  mark(ctx, true);
+}
+
+function beginningOfLine(ctx: Ctx): void {
+  moveToOrExpand(ctx, SelType.CHAR, lineStartTarget);
+}
+
+function endOfLine(ctx: Ctx): void {
+  moveToOrExpand(ctx, SelType.CHAR, lineEndTarget);
+}
+
+function beginningOfBuffer(ctx: Ctx): void {
+  bufferBoundary(ctx, true);
+}
+
+function endOfBuffer(ctx: Ctx): void {
+  bufferBoundary(ctx, false);
+}
 
 type OffsetTarget = (text: string, offset: number) => number;
 
@@ -322,7 +347,7 @@ function wordMotion(ctx: Ctx, symbol: boolean, n: number): void {
   Sel.select(ctx, type, anchor, target, extend);
 }
 
-function markWord(ctx: Ctx, symbol: boolean): void {
+function mark(ctx: Ctx, symbol: boolean): void {
   const neg = ctx.st.takeCount(1) < 0;
   const text = ctx.port.getText();
   const b = Words.boundsAt(text, Sel.primary(ctx).active, charPred(symbol));

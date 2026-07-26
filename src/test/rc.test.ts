@@ -2,9 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // (see LICENSE for the full GPL-3.0-or-later text)
 
-import { describe, it } from 'node:test';
 import { strict as assert } from 'node:assert';
-import { freshSpec } from './helpers';
+import { describe, freshSpec, it, mustGet } from './helpers';
 import { Rc } from '../core/rc';
 import { RcState } from '../core/rcState';
 import { keypadRows } from '../core/whichKey';
@@ -13,19 +12,19 @@ import { MeowMode } from '../core/state';
 describe('RcSpec', () => {
   it('given an action mapping then it parses into a normal override', () => {
     const c = Rc.parse(['nmap S <action>(extension.aceJump)']);
-    assert.equal(c.normal.get('S')!.action, 'extension.aceJump');
+    assert.equal(mustGet(c.normal, 'S').action, 'extension.aceJump');
     assert.deepEqual(c.errors, []);
   });
 
   it('given a key-sequence mapping then it parses as replay keys', () => {
     const c = Rc.parse(['nmap Z ,b']);
-    assert.equal(c.normal.get('Z')!.keys, ',b');
-    assert.equal(c.normal.get('Z')!.recursive, true);
+    assert.equal(mustGet(c.normal, 'Z').keys, ',b');
+    assert.equal(mustGet(c.normal, 'Z').recursive, true);
   });
 
   it('given nnoremap then the binding is non-recursive', () => {
     const c = Rc.parse(['nnoremap Z ,b']);
-    assert.equal(c.normal.get('Z')!.recursive, false);
+    assert.equal(mustGet(c.normal, 'Z').recursive, false);
   });
 
   it('given a meow command name then it parses into a command binding', () => {
@@ -34,17 +33,17 @@ describe('RcSpec', () => {
       'nmap d ignore',
       'nmap Z repeat',
     ]);
-    assert.equal(c.normal.get('n')!.command, 'meow-mark-word');
-    assert.equal(c.normal.get('d')!.command, 'ignore');
-    assert.equal(c.normal.get('Z')!.command, 'repeat');
+    assert.equal(mustGet(c.normal, 'n').command, 'meow-mark-word');
+    assert.equal(mustGet(c.normal, 'd').command, 'ignore');
+    assert.equal(mustGet(c.normal, 'Z').command, 'repeat');
     assert.deepEqual(c.errors, []);
   });
 
   it('given mmap then the binding lands in the motion map', () => {
     const c = Rc.parse(['mmap n meow-next', 'mnoremap e k']);
-    assert.equal(c.motion.get('n')!.command, 'meow-next');
-    assert.equal(c.motion.get('e')!.keys, 'k');
-    assert.equal(c.motion.get('e')!.recursive, false);
+    assert.equal(mustGet(c.motion, 'n').command, 'meow-next');
+    assert.equal(mustGet(c.motion, 'e').keys, 'k');
+    assert.equal(mustGet(c.motion, 'e').recursive, false);
     assert.equal(c.normal.size, 0);
     assert.deepEqual(c.errors, []);
   });
@@ -76,16 +75,16 @@ describe('RcSpec', () => {
       'map <leader>gd <action>(editor.action.revealDefinition)\ndesc <leader>g goto things',
     );
     assert.equal(
-      Rc.cfg().keypad.get('gd')!.action,
+      mustGet(Rc.cfg().keypad, 'gd').action,
       'editor.action.revealDefinition',
     );
     assert.equal(Rc.cfg().keypadDesc.get('g'), 'goto things');
     assert.equal(
-      Rc.keypad().get('gd')!.action,
+      mustGet(Rc.keypad(), 'gd').action,
       'editor.action.revealDefinition',
     );
     assert.equal(
-      Rc.keypad().get('mx')!.action,
+      mustGet(Rc.keypad(), 'mx').action,
       'apputils:activate-command-palette',
     );
   });
@@ -117,7 +116,7 @@ describe('RcSpec', () => {
       'nmap Z ,b',
     ]);
     assert.deepEqual(c.errors, []);
-    assert.equal(c.normal.get('Z')!.keys, ',b');
+    assert.equal(mustGet(c.normal, 'Z').keys, ',b');
   });
 
   it('which-key settings layer user over bundled defaults', () => {
@@ -170,8 +169,8 @@ describe('RcSpec', () => {
       'nmap S <action>(extension.aceJump)   " jump anywhere',
       'map <leader>zz ,b            " select the buffer',
     ]);
-    assert.equal(c.normal.get('S')!.action, 'extension.aceJump');
-    assert.equal(c.keypad.get('zz')!.keys, ',b');
+    assert.equal(mustGet(c.normal, 'S').action, 'extension.aceJump');
+    assert.equal(mustGet(c.keypad, 'zz').keys, ',b');
     assert.deepEqual(c.errors, []);
   });
 
@@ -204,7 +203,7 @@ describe('RcSpec', () => {
     assert.equal(d.keypad.get('rr')?.action, 'notebook:run-cell');
     assert.ok(
       d.keypad.size > 60,
-      `keypad table + ported leader groups (got ${d.keypad.size})`,
+      `keypad table + ported leader groups (got ${String(d.keypad.size)})`,
     );
   });
 
@@ -376,7 +375,7 @@ describe('RcSpec', () => {
   const QWERTY: Map<string, string> = new Map([
     ...Array.from(
       { length: 10 },
-      (_, n) => [String(n), `meow-expand-${n}`] as [string, string],
+      (_, n) => [String(n), `meow-expand-${String(n)}`] as [string, string],
     ),
     ['-', 'meow-negative-argument'],
     [';', 'meow-reverse'],

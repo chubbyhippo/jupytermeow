@@ -16,11 +16,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import assert from 'node:assert/strict';
-import { beforeEach, describe, it } from 'node:test';
+import { beforeEach } from 'node:test';
+import { describe, it } from './helpers';
 import { onEscape, reset, TIMEOUT_MS } from '../core/toolWindowEscape';
 
 describe('ToolWindowEscapeSpec', () => {
-  beforeEach(() => reset());
+  beforeEach(() => {
+    reset();
+  });
 
   it('given a single escape in a tool window then it does not jump', () => {
     assert.equal(onEscape('terminal', 1_000), false);

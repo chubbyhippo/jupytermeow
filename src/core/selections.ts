@@ -36,11 +36,13 @@ const EXPAND_ZERO_COUNT = 10;
 
 export const commands: Map<string, MeowCommand> = new Map();
 for (let n = 0; n <= 9; n++) {
-  commands.set(`meow-expand-${n}`, (ctx) => expandOrCount(ctx, n));
+  commands.set(`meow-expand-${String(n)}`, (ctx) => {
+    expandOrCount(ctx, n);
+  });
 }
-commands.set('meow-reverse', (ctx) => reverse(ctx));
-commands.set('meow-cancel-selection', (ctx) => cancelAll(ctx));
-commands.set('meow-pop-selection', (ctx) => pop(ctx));
+commands.set('meow-reverse', reverse);
+commands.set('meow-cancel-selection', cancelAll);
+commands.set('meow-pop-selection', pop);
 
 const EXPANDABLE = new Set([
   SelType.CHAR,
@@ -101,7 +103,7 @@ export function recordSelect(
     anchor: posBefore ?? active,
     active: posBefore ?? active,
   };
-  const head = st.selectionHistory[st.selectionHistory.length - 1];
+  const head = st.selectionHistory.at(-1);
   if (!head || !sameSaved(head, prev)) st.selectionHistory.push(prev);
   while (st.selectionHistory.length > SELECTION_HISTORY_LIMIT)
     st.selectionHistory.shift();

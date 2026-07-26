@@ -1,9 +1,11 @@
 #!/bin/sh
 # setup.sh — build, test, and install jupytermeow. POSIX sh.
 #
-#   ./setup.sh              run the behavior suite, build the lab extension,
-#                           and pip-install it into the JupyterLab on PATH
-#   ./setup.sh --core-only  only the behavior suite (no JupyterLab needed)
+#   ./setup.sh              type-check, lint, run the behavior suite, build
+#                           the lab extension, and pip-install it into the
+#                           JupyterLab on PATH
+#   ./setup.sh --core-only  only the checks and the behavior suite (no
+#                           JupyterLab needed)
 #   ./setup.sh --build-only build everything, install nothing
 #   ./setup.sh --skip-build install the already-built extension
 #   ./setup.sh -h           show this help and exit
@@ -19,7 +21,7 @@ while [ $# -gt 0 ]; do
         --core-only)  core_only=1 ;;
         --build-only) do_install=0 ;;
         --skip-build) do_build=0 ;;
-        -h|--help)    sed -n '2,10p' "$0"; exit 0 ;;
+        -h|--help)    sed -n '2,11p' "$0"; exit 0 ;;
         *) echo "unknown option: $1 (try --help)" >&2; exit 2 ;;
     esac
     shift
@@ -50,7 +52,7 @@ if [ ! -d node_modules ]; then
     $RUN npm install --no-audit --no-fund
 fi
 
-info "running the behavior suite"
+info "type-checking, linting, and running the behavior suite"
 $RUN npm test
 
 if [ "$core_only" -eq 1 ]; then

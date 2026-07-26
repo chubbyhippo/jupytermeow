@@ -157,7 +157,7 @@ class WebClipboard implements ClipboardPort {
     try {
       await navigator.clipboard.writeText(text);
     } catch {
-      // clipboard permission denied: the kill/save still updated the selection
+      return;
     }
   }
 }
@@ -233,8 +233,8 @@ class LabUi implements UiPort {
         }),
     );
     const decision = AceCore.plan(widgets.length);
-    if (decision === AceCore.Plan.None) return;
-    if (decision === AceCore.Plan.Other) {
+    if (decision === AceCore.Plan.NONE) return;
+    if (decision === AceCore.Plan.OTHER) {
       const current = shell.currentWidget;
       const other = widgets.find((w) => w !== current) ?? widgets[0];
       shell.activateById(other.id);
@@ -248,8 +248,9 @@ class LabUi implements UiPort {
       const el = document.createElement('div');
       el.textContent = ` ${ACE_KEYS[i]} `;
       el.style.cssText =
-        `position:fixed;left:${r.left}px;top:${r.top}px;z-index:10000;` +
-        `background:${Rc.overlayColor()};color:${Rc.overlayTextColor()};` +
+        `position:fixed;left:${String(r.left)}px;top:${String(r.top)}px;` +
+        `z-index:10000;background:${Rc.overlayColor()};` +
+        `color:${Rc.overlayTextColor()};` +
         'font-weight:bold;font-family:monospace;padding:1px 4px;';
       document.body.appendChild(el);
       overlays.push(el);
@@ -481,6 +482,12 @@ function meowExtension(
   return [Overlays.overlayExtensions(), attachment, keys, cursorFollowsClicks];
 }
 
+function rcLinesOf(settings: ISettingRegistry.ISettings): string[] {
+  const configured = settings.composite['rcLines'];
+  if (!Array.isArray(configured)) return [];
+  return configured.filter((line): line is string => typeof line === 'string');
+}
+
 const plugin: JupyterFrontEndPlugin<void> = {
   id: 'jupytermeow:plugin',
   description: 'Meow-style modal editing for every CodeMirror editor.',
@@ -511,9 +518,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     if (settings) {
       void settings.load('jupytermeow:plugin').then((loaded) => {
         applySettings = () => {
-          const lines =
-            (loaded.composite['rcLines'] as readonly string[]) ?? [];
-          Rc.setUserLines([...lines]);
+          Rc.setUserLines(rcLinesOf(loaded));
         };
         applySettings();
         loaded.changed.connect(() => {

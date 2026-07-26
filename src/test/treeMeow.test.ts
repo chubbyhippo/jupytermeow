@@ -2,11 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // (see LICENSE for the full GPL-3.0-or-later text)
 
-import { describe, it } from 'node:test';
 import { strict as assert } from 'node:assert';
 import { Rc } from '../core/rc';
 import * as TreeMeow from '../core/treeMeow';
-import { freshSpec } from './helpers';
+import { describe, freshSpec, it, must } from './helpers';
 
 describe('TreeMeowSpec', () => {
   class TreeNode {
@@ -30,7 +29,7 @@ describe('TreeMeowSpec', () => {
     focus = this.root;
     ran: string[] = [];
 
-    run = async (id: string): Promise<void> => {
+    run = (id: string): Promise<void> => {
       const rows = this.visibleRows();
       const at = rows.indexOf(this.focus);
       switch (id) {
@@ -53,6 +52,7 @@ describe('TreeMeowSpec', () => {
         default:
           this.ran.push(id);
       }
+      return Promise.resolve();
     };
 
     private visibleRows(): TreeNode[] {
@@ -70,7 +70,7 @@ describe('TreeMeowSpec', () => {
         n.name === name
           ? n
           : (n.children.map(find).find((r) => r !== null) ?? null);
-      this.focus = find(this.root)!;
+      this.focus = must(find(this.root), `the node named ${name}`);
     }
 
     selectedText(): string {

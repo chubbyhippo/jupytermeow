@@ -3,12 +3,13 @@
 // (see LICENSE for the full GPL-3.0-or-later text)
 
 import { strict as assert } from 'node:assert';
-import { describe, it } from 'node:test';
-import { freshSpec, Spec } from './helpers';
+import { describe, freshSpec, it, must, Spec } from './helpers';
 import * as Avy from '../core/avy';
 
 describe('AvySpec', () => {
-  const timeout = (s: Spec): void => Avy.finishInput(s.ctx);
+  const timeout = (s: Spec): void => {
+    Avy.finishInput(s.ctx);
+  };
 
   it('given S with input matching many places then labels select the jump target', async () => {
     const s = freshSpec();
@@ -104,11 +105,11 @@ describe('AvySpec', () => {
     const s = freshSpec();
     s.given('words', '<caret>foo foo foo');
     await s.whenKeys('S');
-    assert.equal(s.st.avy?.timer, null);
+    assert.equal(must(s.st.avy).timer, null);
     await s.whenKeys('f');
-    assert.notEqual(s.st.avy?.timer, null);
+    assert.notEqual(must(s.st.avy).timer, null);
     timeout(s);
-    assert.equal(s.st.avy?.phase, 'selecting');
+    assert.equal(must(s.st.avy).phase, 'selecting');
     assert.notEqual(s.st.avy, null);
   });
 

@@ -42,9 +42,15 @@ then restart JupyterLab. `pip install .` does the same thing by hand.
 ## Develop
 
 ```sh
-./setup.sh --core-only   # the behavior suite: tsc + node:test, sub-second
-npm run lint
+./setup.sh --core-only   # tsc + eslint + prettier + node:test, sub-second
+npm run lint             # the lint gates alone
 ```
+
+Every build runs the gates: `npm test` and `npm run build:labextension`
+both type-check and lint first, so neither can be skipped. eslint runs on
+the `strict-type-checked` preset with no rule overrides and no
+suppressions, and the compiler is at zero errors with `strict` plus the
+extra checks in `tsconfig.json`.
 
 The editing engine is plain TypeScript with no JupyterLab imports and a
 full behavior suite; the JupyterLab layer is a thin adapter around it.

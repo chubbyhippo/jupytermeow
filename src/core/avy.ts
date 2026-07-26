@@ -25,8 +25,8 @@ const KEYS = 'asdfghjkl';
 const TIMEOUT_MS = 250;
 
 export const commands: Map<string, MeowCommand> = new Map([
-  ['avy-goto-char-timer', (ctx: Ctx) => startCharTimer(ctx)],
-  ['avy-goto-line', (ctx: Ctx) => startGotoLine(ctx)],
+  ['avy-goto-char-timer', startCharTimer],
+  ['avy-goto-line', startGotoLine],
 ]);
 
 interface Leaf {
@@ -81,7 +81,11 @@ function labels(node: Branch): Array<[number, string]> {
   const out: Array<[number, string]> = [];
   const walk = (n: AvyNode, path: string): void => {
     if (n.kind === 'leaf') out.push([n.offset, path]);
-    else n.children.forEach(([k, child]) => walk(child, path + k));
+    else {
+      n.children.forEach(([k, child]) => {
+        walk(child, path + k);
+      });
+    }
   };
   walk(node, '');
   return out;
@@ -122,7 +126,9 @@ export async function key(ctx: Ctx, c: string): Promise<void> {
 function collect(ctx: Ctx, session: AvySession, c: string): void {
   session.input += c;
   if (session.timer !== null) clearTimeout(session.timer);
-  session.timer = setTimeout(() => void finishInput(ctx), TIMEOUT_MS);
+  session.timer = setTimeout(() => {
+    finishInput(ctx);
+  }, TIMEOUT_MS);
   const len = session.input.length;
   ctx.ui.showAvyMatches(
     matches(ctx, session.input).map((start) => ({ start, end: start + len })),
