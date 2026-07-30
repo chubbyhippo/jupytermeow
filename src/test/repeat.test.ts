@@ -65,7 +65,7 @@ describe('RepeatSpec', () => {
     assert.equal(mustGet(g, 'i').action, 'application:zoom-in-widget');
   });
 
-  it('the bundled default jupytermeowrc declares the init el repeat groups', () => {
+  it('the bundled rc declares the init el repeat groups', () => {
     freshSpec();
     const zoom = mustGet(Rc.defaults().repeat, 'zoom');
     assert.deepEqual(
