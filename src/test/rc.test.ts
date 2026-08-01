@@ -111,12 +111,14 @@ describe('RcSpec', () => {
 
   it('given a cmap or cnoremap line then the rc loads it without error', () => {
     const c = Rc.parse([
-      'cmap <C-x> <action>(chord.example)',
-      'cnoremap <C-h> <BS>',
+      'cmap control F forward-char',
+      'cnoremap alt D kill-word',
       'nmap Z ,b',
     ]);
     assert.deepEqual(c.errors, []);
     assert.equal(mustGet(c.normal, 'Z').keys, ',b');
+    assert.equal(c.normal.size, 1, 'cmap and cnoremap add no normal bindings');
+    assert.equal(c.chords.size, 2, 'they land in the chord map instead');
   });
 
   it('which-key settings layer user over bundled defaults', () => {

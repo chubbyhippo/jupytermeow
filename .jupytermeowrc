@@ -260,3 +260,67 @@ repeat tab , <action>(application:activate-previous-tab)
 
 " Emacs C-x z: after repeat (SPC x z or '), bare z keeps repeating
 repeat replay z repeat
+
+" ============================================================================
+" The stock-Emacs chord layer — outside INSERT only
+" ----------------------------------------------------------------------------
+" Every chord here is a real Emacs key, bound to the meow command that IS the
+" Emacs one. They fire in NORMAL and MOTION, never in INSERT, so JupyterLab
+" and CodeMirror keep C-d / C-k / C-w / C-y while you type. Motions extend a
+" live selection. Either spelling works: the Emacs one (C-f, M-<) or the host
+" one (control F, alt shift COMMA).
+" An unbound chord stays the host's; to hand a bound one back, map it to
+" `ignore` — e.g. `cmap C-f ignore` restores CodeMirror's own binding.
+" ============================================================================
+
+" point motions (C-f C-b C-n C-p C-a C-e, M-f M-b M-a M-e)
+cmap C-f forward-char
+cmap C-b backward-char
+cmap C-n next-line
+cmap C-p previous-line
+cmap C-a move-beginning-of-line
+cmap C-e move-end-of-line
+cmap M-f forward-word
+cmap M-b backward-word
+cmap M-a backward-sentence
+cmap M-e forward-sentence
+
+" buffer + paragraph (M-< M-> M-{ M-})
+cmap M-< beginning-of-buffer
+cmap M-> end-of-buffer
+cmap M-{ backward-paragraph
+cmap M-} forward-paragraph
+
+" case + kill (M-u M-l M-c M-d)
+cmap M-u upcase-word
+cmap M-l downcase-word
+cmap M-c capitalize-word
+cmap M-d kill-word
+
+" stock-Emacs edit chords. Each maps onto the meow command that IS the Emacs
+" one (meow-semantics.md): meow-kill's no-selection fallback is meow-C-k, so
+" C-k kills the line and C-w the region through the same command; meow-save is
+" kill-ring-save; meow-cancel-selection is keyboard-quit; meow-delete is
+" delete-forward-char.
+cmap C-/ meow-undo
+cmap C-_ meow-undo
+cmap C-d meow-delete
+cmap C-k meow-kill
+cmap C-w meow-kill
+cmap M-w meow-save
+cmap C-y meow-yank
+cmap C-g meow-cancel-selection
+
+" stock-Emacs whitespace and line chords. M-^ is meow-join + kill: the ledger
+" records that killing the join selection IS delete-indentation, so it needs no
+" command of its own.
+" C-l recenter-top-bottom: VS Code and JupyterLab have no argument-free
+" recenter, so this is a core command with Emacs' recenter-positions cycle
+" (center -> top -> bottom, restarting whenever the previous command differs).
+cmap C-l recenter-top-bottom
+
+cmap M-m back-to-indentation
+cmap C-o open-line
+cmap M-\ delete-horizontal-space
+cmap M-SPC just-one-space
+cmap M-^ ms

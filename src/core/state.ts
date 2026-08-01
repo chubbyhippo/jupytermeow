@@ -75,6 +75,8 @@ export class MeowState {
 
   lastCommand: string | null = null;
 
+  recenterPhase = 0;
+
   grab: { start: number; end: number } | null = null;
 
   avy: AvySession | null = null;

@@ -15,6 +15,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+import { Chord } from './chord';
 import { Binding, Config } from './rc';
 import { COMMANDS } from './registry';
 
@@ -44,8 +45,10 @@ export function parse(lines: string[]): Config {
     const rest = firstSpace < 0 ? '' : line.slice(firstSpace + 1).trim();
     switch (cmd) {
       case 'let':
+        break;
       case 'cmap':
       case 'cnoremap':
+        parseChord(c, cmd, rest, err);
         break;
       case 'set':
         parseSet(c, rest, err);
@@ -139,6 +142,29 @@ function parseDescBody(
     return;
   }
   c.keypadDesc.set(seq, desc);
+}
+
+function parseChord(
+  c: Config,
+  cmd: string,
+  rest: string,
+  err: (m: string) => void,
+): void {
+  const split = Math.max(rest.lastIndexOf(' '), rest.lastIndexOf('\t'));
+  if (split <= 0) {
+    err(`${cmd} needs a chord and a target`);
+    return;
+  }
+  const spelling = rest.slice(0, split).trim();
+  const chord = Chord.parse(spelling);
+  if (chord === null) {
+    err(`not a chord (needs Ctrl or Alt and one key): ${spelling}`);
+    return;
+  }
+  const rhs = rest.slice(split + 1).trim();
+  const binding = parseTarget(rhs, cmd === 'cmap', `${cmd} ${rest}`, err);
+  if (binding === null) return;
+  c.chords.set(Chord.spelling(chord), binding);
 }
 
 function parseMap(

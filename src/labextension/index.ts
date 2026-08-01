@@ -33,6 +33,8 @@ import { EditorView, ViewPlugin } from '@codemirror/view';
 import { undo as cmUndo } from '@codemirror/commands';
 
 import * as AceCore from '../core/aceWindow';
+import { Chord } from '../core/chord';
+import { Chords } from '../core/chords';
 import * as Engine from '../core/engine';
 import { keypadRows, THINGS } from '../core/whichKey';
 import { MeowMode, MeowState } from '../core/state';
@@ -41,6 +43,7 @@ import {
   ClipboardPort,
   Ctx,
   EditorPort,
+  RevealAt,
   SelRange,
   TextEdit,
   UiPort,
@@ -162,6 +165,12 @@ class WebClipboard implements ClipboardPort {
   }
 }
 
+const SCROLL_STRATEGY: Record<RevealAt, 'center' | 'start' | 'end'> = {
+  center: 'center',
+  top: 'start',
+  bottom: 'end',
+};
+
 class LabUi implements UiPort {
   private whichKeyTimer: number | null = null;
 
@@ -176,6 +185,14 @@ class LabUi implements UiPort {
 
   hint(text: string): void {
     this.status.flash(`meow: ${text}`);
+  }
+
+  revealCaret(at: RevealAt): Promise<void> {
+    const head = this.view.state.selection.main.head;
+    this.view.dispatch({
+      effects: EditorView.scrollIntoView(head, { y: SCROLL_STRATEGY[at] }),
+    });
+    return Promise.resolve();
   }
 
   info(title: string, body: string): void {
@@ -430,6 +447,15 @@ class MeowView {
   }
 }
 
+function chordOf(event: KeyboardEvent): Chord | null {
+  const key = event.key;
+  if (key.length !== 1 && key !== 'Tab') return null;
+  const prefix =
+    (event.ctrlKey || event.metaKey ? 'C-' : '') + (event.altKey ? 'M-' : '');
+  const named = key === ' ' ? 'SPC' : key === 'Tab' ? 'TAB' : key;
+  return Chord.parse(prefix + named);
+}
+
 function meowExtension(
   app: JupyterFrontEnd,
   status: ModeStatus,
@@ -453,7 +479,15 @@ function meowExtension(
           }
           return false;
         }
-        if (event.ctrlKey || event.altKey || event.metaKey) return false;
+        if (event.ctrlKey || event.altKey || event.metaKey) {
+          const chord = chordOf(event);
+          if (!Chords.claims(ctx.st.mode, chord)) return false;
+          event.preventDefault();
+          void Chords.dispatch(ctx, chord).then(() => {
+            ctx.ui.refresh(ctx.st);
+          });
+          return true;
+        }
         if (event.key.length !== 1) return false;
         if (ctx.st.mode === MeowMode.INSERT) return false;
         event.preventDefault();

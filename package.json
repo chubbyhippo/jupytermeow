@@ -42,5 +42,8 @@
     "extension": true,
     "outputDir": "jupytermeow/labextension",
     "schemaDir": "schema"
+  },
+  "overrides": {
+    "sanitize-html": "^2.17.6"
   }
 }
