@@ -15,6 +15,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+export const SINGLE_WINDOW = 1;
 export const LABEL_THRESHOLD = 2;
 
 export enum Plan {
@@ -24,7 +25,7 @@ export enum Plan {
 }
 
 export function plan(windowCount: number): Plan {
-  if (windowCount <= 1) return Plan.NONE;
+  if (windowCount <= SINGLE_WINDOW) return Plan.NONE;
   if (windowCount <= LABEL_THRESHOLD) return Plan.OTHER;
   return Plan.LABELS;
 }

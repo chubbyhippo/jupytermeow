@@ -53,6 +53,7 @@ import { BUNDLED_RC } from './bundledRc';
 
 const ACE_KEYS = 'asdfghjkl';
 const HINT_FLASH_MS = 2500;
+const OVERLAY_Z_INDEX = 10000;
 
 let labShellRef: ILabShell | null = null;
 
@@ -266,7 +267,7 @@ class LabUi implements UiPort {
       label.textContent = ` ${ACE_KEYS[i]} `;
       label.style.cssText =
         `position:fixed;left:${String(bounds.left)}px;top:${String(bounds.top)}px;` +
-        `z-index:10000;background:${Rc.overlayColor()};` +
+        `z-index:${String(OVERLAY_Z_INDEX)};background:${Rc.overlayColor()};` +
         `color:${Rc.overlayTextColor()};` +
         'font-weight:bold;font-family:monospace;padding:1px 4px;';
       document.body.appendChild(label);

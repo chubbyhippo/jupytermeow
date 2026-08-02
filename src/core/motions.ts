@@ -247,6 +247,18 @@ function moveLine(ctx: Ctx, dy: number): void {
   );
 }
 
+function recordExpansion(
+  ctx: Ctx,
+  type: SelType,
+  primary: SelRange,
+  before: number,
+): void {
+  Sel.recordSelect(ctx, type, primary.anchor, primary.active, true, before);
+  ctx.state.selType = type;
+  ctx.state.selExpand = true;
+  Grab.beacon(ctx);
+}
+
 function moveExpand(ctx: Ctx, dx: number, dy: number): void {
   const text = ctx.port.getText();
   const goal = dy !== 0 ? goalColumn(ctx) : null;
@@ -258,17 +270,7 @@ function moveExpand(ctx: Ctx, dx: number, dy: number): void {
       : movedLine(text, s, dy, true, i === 0 ? goal : null),
   );
   ctx.port.setSelections(moved);
-  Sel.recordSelect(
-    ctx,
-    SelType.CHAR,
-    moved[0].anchor,
-    moved[0].active,
-    true,
-    before,
-  );
-  ctx.state.selType = SelType.CHAR;
-  ctx.state.selExpand = true;
-  Grab.beacon(ctx);
+  recordExpansion(ctx, SelType.CHAR, moved[0], before);
 }
 
 function charOrExpand(ctx: Ctx, dx: number): void {
@@ -290,12 +292,7 @@ function moveToOrExpand(ctx: Ctx, type: SelType, target: OffsetTarget): void {
     return { anchor: extend ? s.anchor : active, active };
   });
   ctx.port.setSelections(moved);
-  if (extend) {
-    Sel.recordSelect(ctx, type, moved[0].anchor, moved[0].active, true, before);
-    ctx.state.selType = type;
-    ctx.state.selExpand = true;
-    Grab.beacon(ctx);
-  }
+  if (extend) recordExpansion(ctx, type, moved[0], before);
 }
 
 function wordOrExpand(ctx: Ctx, n: number): void {
