@@ -1,34 +1,39 @@
 # jupytermeow
 
-Meow-style modal editing for JupyterLab, in every CodeMirror editor —
-notebook cells, the file editor, and console prompts.
+[meow](https://github.com/meow-edit/meow)-style modal editing for JupyterLab,
+in every CodeMirror editor — notebook cells, the file editor, console prompts.
 
-Modal editing in the [meow](https://github.com/meow-edit/meow) tradition:
-NORMAL / INSERT / MOTION / KEYPAD states, selection-first commands, the
-char-thing table, digit expand, grab and sync-grab, and avy-style jumps
-on `S` / `Q`, and `SPC w w` labels the open main-area tiles for a
-one-key window jump. `SPC` opens a keypad that dispatches JupyterLab commands —
-`SPC r r` runs the current cell, `SPC x s` saves, `SPC m x` opens the
-command palette.
+| | |
+|---|---|
+| States | NORMAL / INSERT / MOTION / KEYPAD |
+| Model | selection-first commands, the char-thing table, digit expand, grab and sync-grab |
+| Jumps | avy-style on `S` / `Q`; `SPC w w` labels the open main-area tiles for a one-key window jump |
+| Keypad | `SPC` dispatches JupyterLab commands — `SPC r r` run cell, `SPC x s` save, `SPC m x` command palette |
+| Bundled keymap | `.jupytermeowrc`, every key, QWERTY by default |
+| Your overrides | the `rc lines` setting in the JupyterLab Settings editor, one binding per entry — `SPC c m` takes you there |
 
-The whole keymap is plain text: the bundled `.jupytermeowrc` defines
-every key (QWERTY by default), and you override it in the JupyterLab
-Settings editor, where the `rc lines` setting is a list with one binding
-per entry (`SPC c m` takes you there). Bind any key to a meow command, to
-a JupyterLab command id with `<action>(...)`, or to a replayed key
-sequence.
+| rc target form | Means |
+|---|---|
+| a meow command name | a built-in meow command |
+| `<action>(id)` | a JupyterLab command id |
+| anything else | a replayed key sequence |
 
-The overlay colors are `set` options too, each a `#RRGGBB` hex applied to
-both the light and dark themes:
+### Colors
 
-- `set overlay-color=#2ecc71` — the avy / ace-window label background
-- `set overlay-text-color=#ffffff` — that label's text
-- `set expand-hint-color=#2b5db2` — the 0-9 expand-hint color
-- `set grab-color=#4caf50` — the grab / beacon highlight
+Each a `#RRGGBB` hex, applied to both the light and dark themes.
 
-The two label colors ship at these defaults; expand-hint and grab keep
-their own built-in defaults until you set them. An unrecognized color key
-is ignored, and a malformed hex is reported like any other rc error.
+| Line | Colors |
+|---|---|
+| `set overlay-color=#2ecc71` | the avy / ace-window label background |
+| `set overlay-text-color=#ffffff` | that label's text |
+| `set expand-hint-color=#2b5db2` | the `0`-`9` expand hint |
+| `set grab-color=#4caf50` | the grab / beacon highlight |
+
+| Case | Result |
+|---|---|
+| Unset | the two label colors ship at the defaults above; expand-hint and grab keep their own built-in defaults |
+| Unrecognized color key | ignored |
+| Malformed hex | reported like any other rc error |
 
 ## Install
 
@@ -36,24 +41,27 @@ is ignored, and a malformed hex is reported like any other rc error.
 ./setup.sh
 ```
 
-builds the extension and installs it into the JupyterLab on your PATH,
-then restart JupyterLab. `pip install .` does the same thing by hand.
+Builds the extension and installs it into the JupyterLab on your PATH; restart
+JupyterLab afterwards. `pip install .` does the same thing by hand.
 
 ## Develop
 
-```sh
-./setup.sh --core-only   # tsc + eslint + prettier + node:test, sub-second
-npm run lint             # the lint gates alone
-```
+| Command | Runs |
+|---|---|
+| `./setup.sh --core-only` | tsc + eslint + prettier + node:test, sub-second |
+| `npm run lint` | the lint gates alone |
+| `npm test` | type-check, lint, then the behavior suite |
+| `npm run build:labextension` | type-check, lint, then the build |
 
-Every build runs the gates: `npm test` and `npm run build:labextension`
-both type-check and lint first, so neither can be skipped. eslint runs on
-the `strict-type-checked` preset with no rule overrides and no
-suppressions, and the compiler is at zero errors with `strict` plus the
-extra checks in `tsconfig.json`.
+| Gate | Config |
+|---|---|
+| eslint | `strict-type-checked` preset — no rule overrides, no suppressions |
+| tsc | `strict` plus the extra checks in `tsconfig.json`, zero errors |
 
-The editing engine is plain TypeScript with no JupyterLab imports and a
-full behavior suite; the JupyterLab layer is a thin adapter around it.
+| Layer | What |
+|---|---|
+| Editing engine | plain TypeScript, no JupyterLab imports, full behavior suite |
+| JupyterLab layer | a thin adapter around it |
 
 ## License
 
