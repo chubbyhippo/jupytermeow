@@ -15,85 +15,85 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-export function clamp(n: number, lo: number, hi: number): number {
-  return Math.min(Math.max(n, lo), hi);
+export function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
 }
 
-export function escapeRegExp(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+export function escapeRegExp(pattern: string): string {
+  return pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 export function lineOfOffset(text: string, offset: number): number {
-  let ln = 0;
+  let line = 0;
   const end = clamp(offset, 0, text.length);
-  for (let i = 0; i < end; i++) if (text[i] === '\n') ln++;
-  return ln;
+  for (let i = 0; i < end; i++) if (text[i] === '\n') line++;
+  return line;
 }
 
 export function lineCount(text: string): number {
-  let n = 1;
-  for (let i = 0; i < text.length; i++) if (text[i] === '\n') n++;
-  return n;
+  let lines = 1;
+  for (let i = 0; i < text.length; i++) if (text[i] === '\n') lines++;
+  return lines;
 }
 
 export function lineStart(text: string, line: number): number {
   if (line <= 0) return 0;
-  let ln = 0;
+  let newlinesSeen = 0;
   for (let i = 0; i < text.length; i++) {
-    if (text[i] === '\n' && ++ln === line) return i + 1;
+    if (text[i] === '\n' && ++newlinesSeen === line) return i + 1;
   }
   return text.length;
 }
 
 export function lineEnd(text: string, line: number): number {
-  const s = lineStart(text, line);
-  const nl = text.indexOf('\n', s);
-  if (nl < 0) return text.length;
-  return nl > s && text[nl - 1] === '\r' ? nl - 1 : nl;
+  const start = lineStart(text, line);
+  const newline = text.indexOf('\n', start);
+  if (newline < 0) return text.length;
+  return newline > start && text[newline - 1] === '\r' ? newline - 1 : newline;
 }
 
 export function isBlankLine(text: string, line: number): boolean {
   return text.slice(lineStart(text, line), lineEnd(text, line)).trim() === '';
 }
 
-function isWordChar(c: string): boolean {
-  return /[\p{L}\p{N}]/u.test(c);
+function isWordChar(char: string): boolean {
+  return /[\p{L}\p{N}]/u.test(char);
 }
 
-export function isSymbolChar(c: string): boolean {
-  return isWordChar(c) || c === '_' || c === '$';
+export function isSymbolChar(char: string): boolean {
+  return isWordChar(char) || char === '_' || char === '$';
 }
 
-export function charPred(symbol: boolean): (c: string) => boolean {
+export function charPred(symbol: boolean): (char: string) => boolean {
   return symbol ? isSymbolChar : isWordChar;
 }
 
-function indexOfChar(text: string, c: string, from: number): number {
+function indexOfChar(text: string, char: string, from: number): number {
   for (let i = Math.max(from, 0); i < text.length; i++)
-    if (text[i] === c) return i;
+    if (text[i] === char) return i;
   return -1;
 }
 
-function lastIndexOfChar(text: string, c: string, from: number): number {
+function lastIndexOfChar(text: string, char: string, from: number): number {
   for (let i = Math.min(from, text.length - 1); i >= 0; i--)
-    if (text[i] === c) return i;
+    if (text[i] === char) return i;
   return -1;
 }
 
 export function nthCharTarget(
   text: string,
-  ch: string,
+  char: string,
   caret: number,
-  n: number,
+  count: number,
   backward: boolean,
   till: boolean,
 ): number {
   let found = -1;
   let from = backward ? caret - (till ? 2 : 1) : caret + (till ? 1 : 0);
-  for (let k = 0; k < n; k++) {
+  for (let step = 0; step < count; step++) {
     found = backward
-      ? lastIndexOfChar(text, ch, from)
-      : indexOfChar(text, ch, from);
+      ? lastIndexOfChar(text, char, from)
+      : indexOfChar(text, char, from);
     if (found < 0) return -1;
     from = backward ? found - 1 : found + 1;
   }
@@ -104,9 +104,13 @@ export function nthCharTarget(
 
 export const SENTENCE_ENDERS = '.!?';
 
-export function nextSentenceEnd(text: string, from: number, n: number): number {
+export function nextSentenceEnd(
+  text: string,
+  from: number,
+  count: number,
+): number {
   let i = clamp(from, 0, text.length);
-  for (let k = 0; k < n; k++) {
+  for (let step = 0; step < count; step++) {
     while (i < text.length && !SENTENCE_ENDERS.includes(text[i])) i++;
     while (i < text.length && SENTENCE_ENDERS.includes(text[i])) i++;
     while (i < text.length && /\s/.test(text[i])) i++;
@@ -117,11 +121,12 @@ export function nextSentenceEnd(text: string, from: number, n: number): number {
 export function prevSentenceStart(
   text: string,
   from: number,
-  n: number,
+  count: number,
 ): number {
-  const isGap = (c: string) => /\s/.test(c) || SENTENCE_ENDERS.includes(c);
+  const isGap = (char: string) =>
+    /\s/.test(char) || SENTENCE_ENDERS.includes(char);
   let i = clamp(from, 0, text.length);
-  for (let k = 0; k < n; k++) {
+  for (let step = 0; step < count; step++) {
     while (i > 0 && isGap(text[i - 1])) i--;
     while (i > 0 && !isGap(text[i - 1])) i--;
   }
@@ -134,14 +139,14 @@ function lineStartAt(text: string, offset: number): number {
   return i;
 }
 
-function followingLineStart(text: string, bol: number): number {
-  let i = bol;
+function followingLineStart(text: string, lineStartOffset: number): number {
+  let i = lineStartOffset;
   while (i < text.length && text[i] !== '\n') i++;
   return i < text.length ? i + 1 : i;
 }
 
-function blankLineAt(text: string, bol: number): boolean {
-  let i = bol;
+function blankLineAt(text: string, lineStartOffset: number): boolean {
+  let i = lineStartOffset;
   while (i < text.length && text[i] !== '\n') {
     if (!/\s/.test(text[i])) return false;
     i++;
@@ -152,10 +157,10 @@ function blankLineAt(text: string, bol: number): boolean {
 export function nextParagraphEnd(
   text: string,
   from: number,
-  n: number,
+  count: number,
 ): number {
   let pos = clamp(from, 0, text.length);
-  for (let k = 0; k < n; k++) {
+  for (let step = 0; step < count; step++) {
     let i = lineStartAt(text, pos);
     while (i < text.length && blankLineAt(text, i))
       i = followingLineStart(text, i);
@@ -169,10 +174,10 @@ export function nextParagraphEnd(
 export function prevParagraphStart(
   text: string,
   from: number,
-  n: number,
+  count: number,
 ): number {
   let pos = clamp(from, 0, text.length);
-  for (let k = 0; k < n; k++) {
+  for (let step = 0; step < count; step++) {
     if (pos > 0) {
       const start = paragraphStartBefore(text, pos);
       pos = start < pos ? start : paragraphStartBefore(text, start - 1);
@@ -195,13 +200,13 @@ export const Words = {
   nextEnd(
     text: string,
     from: number,
-    n: number,
-    pred: (c: string) => boolean,
+    count: number,
+    isWord: (char: string) => boolean,
   ): number {
     let i = clamp(from, 0, text.length);
-    for (let k = 0; k < n; k++) {
-      while (i < text.length && !pred(text[i])) i++;
-      while (i < text.length && pred(text[i])) i++;
+    for (let step = 0; step < count; step++) {
+      while (i < text.length && !isWord(text[i])) i++;
+      while (i < text.length && isWord(text[i])) i++;
     }
     return i;
   },
@@ -209,13 +214,13 @@ export const Words = {
   prevStart(
     text: string,
     from: number,
-    n: number,
-    pred: (c: string) => boolean,
+    count: number,
+    isWord: (char: string) => boolean,
   ): number {
     let i = clamp(from, 0, text.length);
-    for (let k = 0; k < n; k++) {
-      while (i > 0 && !pred(text[i - 1])) i--;
-      while (i > 0 && pred(text[i - 1])) i--;
+    for (let step = 0; step < count; step++) {
+      while (i > 0 && !isWord(text[i - 1])) i--;
+      while (i > 0 && isWord(text[i - 1])) i--;
     }
     return i;
   },
@@ -224,14 +229,14 @@ export const Words = {
     text: string,
     pos: number,
     mark: number,
-    pred: (c: string) => boolean,
+    isWord: (char: string) => boolean,
   ): number {
     const probe = clamp(
       mark > pos ? pos : pos - 1,
       0,
       Math.max(text.length - 1, 0),
     );
-    const bounds = Words.boundsAt(text, probe, pred);
+    const bounds = Words.boundsAt(text, probe, isWord);
     if (!bounds) return mark;
     return mark > pos ? Math.min(mark, bounds[1]) : Math.max(mark, bounds[0]);
   },
@@ -239,25 +244,28 @@ export const Words = {
   boundsAt(
     text: string,
     offset: number,
-    pred: (c: string) => boolean,
+    isWord: (char: string) => boolean,
   ): [number, number] | null {
-    let o = offset;
-    if (o >= text.length || !pred(text[o])) {
-      if (o > 0 && pred(text[o - 1])) {
-        o--;
-      } else {
-        let f = o;
-        while (f < text.length && !pred(text[f])) f++;
-        if (f >= text.length) return null;
-        o = f;
-      }
-    }
-    let s = o;
-    let e = o;
-    while (s > 0 && pred(text[s - 1])) s--;
-    while (e < text.length && pred(text[e])) e++;
-    return [s, e];
+    const inWord = offsetInWord(text, offset, isWord);
+    if (inWord === null) return null;
+    let start = inWord;
+    let end = inWord;
+    while (start > 0 && isWord(text[start - 1])) start--;
+    while (end < text.length && isWord(text[end])) end++;
+    return [start, end];
   },
 };
 
-export const isBlank = (ch: string): boolean => ch === ' ' || ch === '\t';
+function offsetInWord(
+  text: string,
+  offset: number,
+  isWord: (char: string) => boolean,
+): number | null {
+  if (offset < text.length && isWord(text[offset])) return offset;
+  if (offset > 0 && isWord(text[offset - 1])) return offset - 1;
+  let scan = offset;
+  while (scan < text.length && !isWord(text[scan])) scan++;
+  return scan < text.length ? scan : null;
+}
+
+export const isBlank = (char: string): boolean => char === ' ' || char === '\t';

@@ -88,9 +88,9 @@ function pair(
   let depth = 0;
   let start = -1;
   for (let i = offset - 1; i >= 0; i--) {
-    const c = text[i];
-    if (c === close) depth++;
-    else if (c === open) {
+    const char = text[i];
+    if (char === close) depth++;
+    else if (char === open) {
       if (depth === 0) {
         start = i;
         break;
@@ -102,9 +102,9 @@ function pair(
   depth = 0;
   let end = -1;
   for (let j = offset; j < text.length; j++) {
-    const c = text[j];
-    if (c === open && j !== start) depth++;
-    else if (c === close) {
+    const char = text[j];
+    if (char === open && j !== start) depth++;
+    else if (char === close) {
       if (depth === 0) {
         end = j;
         break;
@@ -121,39 +121,40 @@ function stringThing(
   offset: number,
   inner: boolean,
 ): Bounds | null {
-  const n = text.length;
+  const length = text.length;
   let i = 0;
-  while (i < n) {
-    const c = text[i];
-    if (c === '"' || c === "'" || c === '`') {
-      const triple = i + 2 < n && text[i + 1] === c && text[i + 2] === c;
-      const len = triple ? 3 : 1;
+  while (i < length) {
+    const quote = text[i];
+    if (quote === '"' || quote === "'" || quote === '`') {
+      const triple =
+        i + 2 < length && text[i + 1] === quote && text[i + 2] === quote;
+      const quoteLen = triple ? 3 : 1;
       const open = i;
-      let j = i + len;
+      let j = i + quoteLen;
       let closeEnd = -1;
-      while (j < n) {
-        const d = text[j];
-        if (!triple && d === '\n') break;
-        if (d === '\\') {
+      while (j < length) {
+        const char = text[j];
+        if (!triple && char === '\n') break;
+        if (char === '\\') {
           j += 2;
           continue;
         }
         const closes = triple
-          ? j + 2 < n && text[j + 1] === c && text[j + 2] === c
+          ? j + 2 < length && text[j + 1] === quote && text[j + 2] === quote
           : true;
-        if (d === c && closes) {
-          closeEnd = j + len;
+        if (char === quote && closes) {
+          closeEnd = j + quoteLen;
           break;
         }
         j++;
       }
       if (closeEnd < 0) {
-        i = open + len;
+        i = open + quoteLen;
         continue;
       }
       if (offset >= open && offset < closeEnd) {
         return inner
-          ? { start: open + len, end: closeEnd - len }
+          ? { start: open + quoteLen, end: closeEnd - quoteLen }
           : { start: open, end: closeEnd };
       }
       i = closeEnd;
@@ -165,16 +166,16 @@ function stringThing(
 }
 
 function symbol(text: string, offset: number): Bounds | null {
-  let o = offset;
-  if (o >= text.length || !isSymbolChar(text[o])) {
-    if (o > 0 && isSymbolChar(text[o - 1])) o--;
+  let inSymbol = offset;
+  if (inSymbol >= text.length || !isSymbolChar(text[inSymbol])) {
+    if (inSymbol > 0 && isSymbolChar(text[inSymbol - 1])) inSymbol--;
     else return null;
   }
-  let s = o;
-  let e = o;
-  while (s > 0 && isSymbolChar(text[s - 1])) s--;
-  while (e < text.length && isSymbolChar(text[e])) e++;
-  return { start: s, end: e };
+  let start = inSymbol;
+  let end = inSymbol;
+  while (start > 0 && isSymbolChar(text[start - 1])) start--;
+  while (end < text.length && isSymbolChar(text[end])) end++;
+  return { start, end };
 }
 
 function window(ctx: Ctx, text: string): Bounds {
@@ -192,11 +193,11 @@ function paragraph(
 ): Bounds | null {
   if (text.length === 0) return null;
   const count = lineCount(text);
-  const blank = (l: number) => isBlankLine(text, l);
-  const ln = lineOfOffset(text, clamp(offset, 0, text.length));
-  if (blank(ln)) return null;
-  let first = ln;
-  let last = ln;
+  const blank = (line: number) => isBlankLine(text, line);
+  const caretLine = lineOfOffset(text, clamp(offset, 0, text.length));
+  if (blank(caretLine)) return null;
+  let first = caretLine;
+  let last = caretLine;
   while (first > 0 && !blank(first - 1)) first--;
   while (last < count - 1 && !blank(last + 1)) last++;
   const start = lineStart(text, first);
@@ -209,11 +210,14 @@ function paragraph(
 }
 
 function line(text: string, offset: number, inner: boolean): Bounds {
-  const ln = lineOfOffset(text, clamp(offset, 0, text.length));
-  const end = lineEnd(text, ln);
+  const caretLine = lineOfOffset(text, clamp(offset, 0, text.length));
+  const end = lineEnd(text, caretLine);
   return inner
-    ? { start: lineStart(text, ln), end }
-    : { start: lineStart(text, ln), end: lineStart(text, ln + 1) };
+    ? { start: lineStart(text, caretLine), end }
+    : {
+        start: lineStart(text, caretLine),
+        end: lineStart(text, caretLine + 1),
+      };
 }
 
 function visualLine(text: string, offset: number): Bounds {
@@ -227,40 +231,41 @@ async function defun(
 ): Promise<Bounds | null> {
   const fromHost = await ctx.port.symbolRangeAt(offset);
   if (fromHost) return fromHost;
-  let b = pair(text, offset, '{', '}', false);
-  if (!b) return null;
+  let braces = pair(text, offset, '{', '}', false);
+  if (!braces) return null;
   for (;;) {
-    const outer = pair(text, b.start, '{', '}', false);
+    const outer = pair(text, braces.start, '{', '}', false);
     if (!outer) break;
-    b = outer;
+    braces = outer;
   }
-  return b;
+  return braces;
 }
 
 function sentence(text: string, offset: number, inner: boolean): Bounds | null {
   if (text.length === 0) return null;
-  let s = clamp(offset, 0, text.length - 1);
-  while (s > 0) {
-    const c = text[s - 1];
+  let start = clamp(offset, 0, text.length - 1);
+  while (start > 0) {
+    const char = text[start - 1];
     if (
-      SENTENCE_ENDERS.includes(c) ||
-      (c === '\n' && s > 1 && text[s - 2] === '\n')
+      SENTENCE_ENDERS.includes(char) ||
+      (char === '\n' && start > 1 && text[start - 2] === '\n')
     )
       break;
-    s--;
+    start--;
   }
-  while (s < text.length && /\s/.test(text[s])) s++;
-  let e = clamp(offset, 0, text.length);
+  while (start < text.length && /\s/.test(text[start])) start++;
+  let end = clamp(offset, 0, text.length);
   while (
-    e < text.length &&
-    !SENTENCE_ENDERS.includes(text[e]) &&
-    !(text[e] === '\n' && e + 1 < text.length && text[e + 1] === '\n')
+    end < text.length &&
+    !SENTENCE_ENDERS.includes(text[end]) &&
+    !(text[end] === '\n' && end + 1 < text.length && text[end + 1] === '\n')
   )
-    e++;
-  if (e < text.length && SENTENCE_ENDERS.includes(text[e])) e++;
-  if (e <= s) return null;
-  if (inner) return { start: s, end: e };
-  let be = e;
-  while (be < text.length && text[be] === ' ') be++;
-  return { start: s, end: be };
+    end++;
+  if (end < text.length && SENTENCE_ENDERS.includes(text[end])) end++;
+  if (end <= start) return null;
+  if (inner) return { start, end };
+  let withTrailingSpace = end;
+  while (withTrailingSpace < text.length && text[withTrailingSpace] === ' ')
+    withTrailingSpace++;
+  return { start, end: withTrailingSpace };
 }

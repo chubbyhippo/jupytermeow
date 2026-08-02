@@ -70,11 +70,11 @@ function decoSlot(): DecoSlot {
   const field = StateField.define<DecorationSet>({
     create: () => Decoration.none,
     update(value, tr) {
-      let v = value.map(tr.changes);
-      for (const e of tr.effects) {
-        if (e.is(set)) v = e.value;
+      let decorations = value.map(tr.changes);
+      for (const effect of tr.effects) {
+        if (effect.is(set)) decorations = effect.value;
       }
-      return v;
+      return decorations;
     },
     provide: (f) => EditorView.decorations.from(f),
   });
@@ -116,11 +116,14 @@ export function markDecorations(
   const mark = Decoration.mark(
     style === '' ? { class: cls } : { class: cls, attributes: { style } },
   );
-  const rs = ranges
-    .filter((r) => r.start >= 0 && r.start < r.end && r.end <= docLen)
-    .sort((a, b) => a.start - b.start)
-    .map((r) => mark.range(r.start, r.end));
-  return Decoration.set(rs);
+  const marked = ranges
+    .filter(
+      (range) =>
+        range.start >= 0 && range.start < range.end && range.end <= docLen,
+    )
+    .sort((left, right) => left.start - right.start)
+    .map((range) => mark.range(range.start, range.end));
+  return Decoration.set(marked);
 }
 
 export function blockCursorDecorations(
@@ -153,11 +156,11 @@ export const setWhichKey = StateEffect.define<WhichKeyContent | null>();
 const whichKeyField = StateField.define<WhichKeyContent | null>({
   create: () => null,
   update(value, tr) {
-    let v = value;
-    for (const e of tr.effects) {
-      if (e.is(setWhichKey)) v = e.value;
+    let content = value;
+    for (const effect of tr.effects) {
+      if (effect.is(setWhichKey)) content = effect.value;
     }
-    return v;
+    return content;
   },
   provide: (f) =>
     showPanel.from(f, (value) => (value ? whichKeyPanel(value) : null)),

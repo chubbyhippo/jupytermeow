@@ -245,8 +245,8 @@ class LabUi implements UiPort {
       Array.from(shell.widgets('main'))
         .filter((w) => w.isVisible)
         .map((w) => {
-          const r = w.node.getBoundingClientRect();
-          return { item: w, x: r.left, y: r.top };
+          const bounds = w.node.getBoundingClientRect();
+          return { item: w, x: bounds.left, y: bounds.top };
         }),
     );
     const decision = AceCore.plan(widgets.length);
@@ -261,16 +261,16 @@ class LabUi implements UiPort {
     const overlays: HTMLElement[] = [];
     widgets.slice(0, ACE_KEYS.length).forEach((w, i) => {
       byKey.set(ACE_KEYS[i], w);
-      const r = w.node.getBoundingClientRect();
-      const el = document.createElement('div');
-      el.textContent = ` ${ACE_KEYS[i]} `;
-      el.style.cssText =
-        `position:fixed;left:${String(r.left)}px;top:${String(r.top)}px;` +
+      const bounds = w.node.getBoundingClientRect();
+      const label = document.createElement('div');
+      label.textContent = ` ${ACE_KEYS[i]} `;
+      label.style.cssText =
+        `position:fixed;left:${String(bounds.left)}px;top:${String(bounds.top)}px;` +
         `z-index:10000;background:${Rc.overlayColor()};` +
         `color:${Rc.overlayTextColor()};` +
         'font-weight:bold;font-family:monospace;padding:1px 4px;';
-      document.body.appendChild(el);
-      overlays.push(el);
+      document.body.appendChild(label);
+      overlays.push(label);
     });
     const cleanup = (): void => {
       overlays.forEach((el) => {
@@ -406,15 +406,18 @@ class LabUi implements UiPort {
     });
   }
 
-  modeChanged(st: MeowState): void {
-    this.refresh(st);
+  modeChanged(meowState: MeowState): void {
+    this.refresh(meowState);
   }
 
-  refresh(st: MeowState): void {
-    this.status.set(`MEOW ${st.mode}`);
+  refresh(meowState: MeowState): void {
+    this.status.set(`MEOW ${meowState.mode}`);
     this.view.dispatch({
       effects: Overlays.cursorSlot.set.of(
-        Overlays.blockCursorDecorations(this.view, st.mode === MeowMode.INSERT),
+        Overlays.blockCursorDecorations(
+          this.view,
+          meowState.mode === MeowMode.INSERT,
+        ),
       ),
     });
   }
@@ -436,13 +439,13 @@ class MeowView {
     status: ModeStatus,
     reloadRc: () => void,
   ) {
-    const st = new MeowState();
-    st.mode = MeowMode.NORMAL;
+    const meowState = new MeowState();
+    meowState.mode = MeowMode.NORMAL;
     this.ctx = {
       port: new CmPort(view, app),
       clipboard: new WebClipboard(),
       ui: new LabUi(app, view, status, reloadRc),
-      st,
+      state: meowState,
     };
   }
 }
@@ -474,31 +477,31 @@ function meowExtension(
         if (event.key === 'Escape') {
           if (Engine.escapeKey(ctx)) {
             event.preventDefault();
-            ctx.ui.refresh(ctx.st);
+            ctx.ui.refresh(ctx.state);
             return true;
           }
           return false;
         }
         if (event.ctrlKey || event.altKey || event.metaKey) {
           const chord = chordOf(event);
-          if (!Chords.claims(ctx.st.mode, chord)) return false;
+          if (!Chords.claims(ctx.state.mode, chord)) return false;
           event.preventDefault();
           void Chords.dispatch(ctx, chord).then(() => {
-            ctx.ui.refresh(ctx.st);
+            ctx.ui.refresh(ctx.state);
           });
           return true;
         }
         if (event.key.length !== 1) return false;
-        if (ctx.st.mode === MeowMode.INSERT) return false;
+        if (ctx.state.mode === MeowMode.INSERT) return false;
         event.preventDefault();
         void Engine.handleChar(ctx, event.key).then(() => {
-          ctx.ui.refresh(ctx.st);
+          ctx.ui.refresh(ctx.state);
         });
         return true;
       },
       focus: (_event, view): boolean => {
         const meow = view.plugin(attachment);
-        if (meow) meow.ctx.ui.refresh(meow.ctx.st);
+        if (meow) meow.ctx.ui.refresh(meow.ctx.state);
         return false;
       },
     }),
@@ -507,9 +510,9 @@ function meowExtension(
   const cursorFollowsClicks = EditorView.updateListener.of((update) => {
     if (!update.selectionSet) return;
     const meow = update.view.plugin(attachment);
-    if (!meow || meow.ctx.st.mode === MeowMode.INSERT) return;
+    if (!meow || meow.ctx.state.mode === MeowMode.INSERT) return;
     window.setTimeout(() => {
-      if (update.view.plugin(attachment)) meow.ctx.ui.refresh(meow.ctx.st);
+      if (update.view.plugin(attachment)) meow.ctx.ui.refresh(meow.ctx.state);
     }, 0);
   });
 

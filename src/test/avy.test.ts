@@ -19,7 +19,7 @@ describe('AvySpec', () => {
     timeout(s);
     await s.whenKeys('s');
     s.thenCaretAt(8);
-    assert.equal(s.st.avy, null, 'session ends after the jump');
+    assert.equal(s.state.avy, null, 'session ends after the jump');
   });
 
   it('given a single candidate then avy jumps immediately (avy-single-candidate-jump)', async () => {
@@ -29,7 +29,7 @@ describe('AvySpec', () => {
     await s.whenKeys('gam');
     timeout(s);
     s.thenCaretAt(11);
-    assert.equal(s.st.avy, null);
+    assert.equal(s.state.avy, null);
   });
 
   it('given no candidates then the session ends where it started', async () => {
@@ -39,7 +39,7 @@ describe('AvySpec', () => {
     await s.whenKeys('zz');
     timeout(s);
     s.thenCaretAt(0);
-    assert.equal(s.st.avy, null);
+    assert.equal(s.state.avy, null);
     await s.whenKeys('l');
     s.thenCaretAt(1);
   });
@@ -72,7 +72,7 @@ describe('AvySpec', () => {
     await s.whenKeys('xx');
     timeout(s);
     await s.whenKeys('z');
-    assert.notEqual(s.st.avy, null);
+    assert.notEqual(s.state.avy, null);
     await s.whenKeys('d');
     s.thenCaretAt(6);
   });
@@ -84,7 +84,7 @@ describe('AvySpec', () => {
     await s.whenKeys('e');
     timeout(s);
     await s.whenKeys('l');
-    assert.notEqual(s.st.avy, null);
+    assert.notEqual(s.state.avy, null);
     await s.whenKeys('s');
     s.thenCaretAt(18);
   });
@@ -95,9 +95,9 @@ describe('AvySpec', () => {
     await s.whenKeys('S');
     await s.whenKeys('foo');
     timeout(s);
-    assert.notEqual(s.st.avy, null);
+    assert.notEqual(s.state.avy, null);
     assert.equal(s.pressEsc(), true);
-    assert.equal(s.st.avy, null);
+    assert.equal(s.state.avy, null);
     s.thenCaretAt(0);
   });
 
@@ -105,22 +105,22 @@ describe('AvySpec', () => {
     const s = freshSpec();
     s.given('words', '<caret>foo foo foo');
     await s.whenKeys('S');
-    assert.equal(must(s.st.avy).timer, null);
+    assert.equal(must(s.state.avy).timer, null);
     await s.whenKeys('f');
-    assert.notEqual(must(s.st.avy).timer, null);
+    assert.notEqual(must(s.state.avy).timer, null);
     timeout(s);
-    assert.equal(must(s.st.avy).phase, 'selecting');
-    assert.notEqual(s.st.avy, null);
+    assert.equal(must(s.state.avy).phase, 'selecting');
+    assert.notEqual(s.state.avy, null);
   });
 
   it('given Q then visible lines are labeled and a key jumps to that line', async () => {
     const s = freshSpec();
     s.given('four lines', 'one\ntwo\nthr<caret>ee\nfour');
     await s.whenKeys('Q');
-    assert.notEqual(s.st.avy, null);
+    assert.notEqual(s.state.avy, null);
     await s.whenKeys('f');
     s.thenCaretAt(14);
-    assert.equal(s.st.avy, null);
+    assert.equal(s.state.avy, null);
   });
 
   it('given Q then a digit switches to the goto-line number prompt', async () => {
@@ -129,7 +129,7 @@ describe('AvySpec', () => {
     s.givenMinibufferAnswers('3');
     await s.whenKeys('Q3');
     s.thenCaretAt(8);
-    assert.equal(s.st.avy, null);
+    assert.equal(s.state.avy, null);
   });
 
   it('the avy-subdiv distribution matches avy 0-5-0', () => {

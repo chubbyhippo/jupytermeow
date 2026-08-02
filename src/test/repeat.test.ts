@@ -125,7 +125,7 @@ describe('RepeatSpec', () => {
     s.givenRc(navRc);
     await s.whenKeys(' tn');
     assert.equal(s.caretLine(), 1);
-    s.st = new MeowState();
+    s.state = new MeowState();
     await s.whenKeys('.');
     assert.equal(s.caretLine(), 2);
   });
@@ -149,7 +149,7 @@ describe('RepeatSpec', () => {
     await s.whenKeys('x');
     s.thenSelection('two');
     await s.whenKeys('.');
-    assert.equal(s.st.pending, Pending.BOUNDS);
+    assert.equal(s.state.pending, Pending.BOUNDS);
     assert.equal(s.caretLine(), 1);
   });
 
@@ -162,7 +162,7 @@ describe('RepeatSpec', () => {
     s.pressEsc();
     assert.equal(Engine.repeatMap, null);
     await s.whenKeys('.');
-    assert.equal(s.st.pending, Pending.BOUNDS);
+    assert.equal(s.state.pending, Pending.BOUNDS);
     assert.equal(s.caretLine(), 1);
   });
 
