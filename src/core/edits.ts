@@ -69,21 +69,21 @@ async function editCarets(
   ctx: Ctx,
   compute: (
     sel: SelRange,
-    lo: number,
-    hi: number,
+    selStart: number,
+    selEnd: number,
   ) => { edit: TextEdit | null; sel: SelRange },
 ): Promise<void> {
   const sels = ctx.port.getSelections();
   const order = sels
-    .map((sel, index) => ({ sel, index, lo: Sel.lo(sel) }))
-    .sort((a, b) => b.lo - a.lo);
+    .map((sel, index) => ({ sel, index, selStart: Sel.selStart(sel) }))
+    .sort((a, b) => b.selStart - a.selStart);
   const edits: TextEdit[] = [];
   const results = new Array<{ edit: TextEdit | null; sel: SelRange }>(
     sels.length,
   );
   for (const item of order) {
-    const selEnd = Sel.hi(item.sel);
-    const computed = compute(item.sel, item.lo, selEnd);
+    const selEnd = Sel.selEnd(item.sel);
+    const computed = compute(item.sel, item.selStart, selEnd);
     if (computed.edit) edits.push(computed.edit);
     results[item.index] = computed;
   }
@@ -104,21 +104,25 @@ async function editCarets(
 }
 
 function deleteSelectionOrChar(
-  lo: number,
-  hi: number,
+  selStart: number,
+  selEnd: number,
   docLen: number,
 ): { edit: TextEdit | null; sel: SelRange } {
-  const caret: SelRange = { anchor: lo, active: lo };
-  if (lo !== hi) return { edit: { start: lo, end: hi, text: '' }, sel: caret };
-  if (lo < docLen)
-    return { edit: { start: lo, end: lo + 1, text: '' }, sel: caret };
+  const caret: SelRange = { anchor: selStart, active: selStart };
+  if (selStart !== selEnd)
+    return { edit: { start: selStart, end: selEnd, text: '' }, sel: caret };
+  if (selStart < docLen)
+    return {
+      edit: { start: selStart, end: selStart + 1, text: '' },
+      sel: caret,
+    };
   return { edit: null, sel: caret };
 }
 
 function insert(ctx: Ctx): void {
   ctx.port.setSelections(
     ctx.port.getSelections().map((sel) => {
-      const start = Sel.lo(sel);
+      const start = Sel.selStart(sel);
       return { anchor: start, active: start };
     }),
   );
@@ -130,7 +134,7 @@ function insert(ctx: Ctx): void {
 function append(ctx: Ctx): void {
   ctx.port.setSelections(
     ctx.port.getSelections().map((sel) => {
-      const end = Sel.hi(sel);
+      const end = Sel.selEnd(sel);
       return { anchor: end, active: end };
     }),
   );
@@ -203,8 +207,8 @@ async function change(ctx: Ctx): Promise<void> {
   const text = ctx.port.getText();
   const prim = Sel.primary(ctx);
   if (!Sel.hasSelection(prim) && prim.active >= text.length) return;
-  await editCarets(ctx, (_sel, lo, hi) =>
-    deleteSelectionOrChar(lo, hi, text.length),
+  await editCarets(ctx, (_sel, selStart, selEnd) =>
+    deleteSelectionOrChar(selStart, selEnd, text.length),
   );
   ctx.state.selType = SelType.NONE;
   setMode(ctx, MeowMode.INSERT);
@@ -213,26 +217,26 @@ async function change(ctx: Ctx): Promise<void> {
 async function del(ctx: Ctx): Promise<void> {
   if (blockedReadOnly(ctx)) return;
   const text = ctx.port.getText();
-  await editCarets(ctx, (_sel, lo, hi) =>
-    deleteSelectionOrChar(lo, hi, text.length),
+  await editCarets(ctx, (_sel, selStart, selEnd) =>
+    deleteSelectionOrChar(selStart, selEnd, text.length),
   );
   ctx.state.selType = SelType.NONE;
 }
 
 async function backwardDelete(ctx: Ctx): Promise<void> {
   if (!allowModify(ctx)) return;
-  await editCarets(ctx, (_sel, lo, hi) => {
-    if (lo !== hi)
+  await editCarets(ctx, (_sel, selStart, selEnd) => {
+    if (selStart !== selEnd)
       return {
-        edit: { start: lo, end: hi, text: '' },
-        sel: { anchor: lo, active: lo },
+        edit: { start: selStart, end: selEnd, text: '' },
+        sel: { anchor: selStart, active: selStart },
       };
-    if (lo > 0)
+    if (selStart > 0)
       return {
-        edit: { start: lo - 1, end: lo, text: '' },
-        sel: { anchor: lo - 1, active: lo - 1 },
+        edit: { start: selStart - 1, end: selStart, text: '' },
+        sel: { anchor: selStart - 1, active: selStart - 1 },
       };
-    return { edit: null, sel: { anchor: lo, active: lo } };
+    return { edit: null, sel: { anchor: selStart, active: selStart } };
   });
   ctx.state.selType = SelType.NONE;
 }
@@ -242,8 +246,8 @@ function killRange(
   sel: SelRange,
   text: string,
 ): { start: number; end: number } {
-  const start = Sel.lo(sel);
-  let end = Sel.hi(sel);
+  const start = Sel.selStart(sel);
+  let end = Sel.selEnd(sel);
   if (
     ctx.state.selType === SelType.LINE &&
     sel.active >= sel.anchor &&
@@ -258,7 +262,7 @@ function killRange(
 function regionsInOrder(sels: SelRange[]): SelRange[] {
   return sels
     .filter((sel) => sel.anchor !== sel.active)
-    .sort((left, right) => Sel.lo(left) - Sel.lo(right));
+    .sort((left, right) => Sel.selStart(left) - Sel.selStart(right));
 }
 
 function joinedKillText(ctx: Ctx, text: string, regions: SelRange[]): string {
@@ -311,8 +315,8 @@ async function kill(ctx: Ctx): Promise<void> {
 async function joinKill(ctx: Ctx): Promise<void> {
   const text = ctx.port.getText();
   const prim = Sel.primary(ctx);
-  const start = Sel.lo(prim);
-  const end = Sel.hi(prim);
+  const start = Sel.selStart(prim);
+  const end = Sel.selEnd(prim);
   const before = start > 0 ? text[start - 1] : '\n';
   const after = end < text.length ? text[end] : '\n';
   const space =
@@ -364,12 +368,15 @@ async function replace(ctx: Ctx): Promise<void> {
   const raw = await ctx.clipboard.read();
   if (raw === undefined) return;
   const clip = raw.replace(/\n+$/, '');
-  await editCarets(ctx, (sel, lo, hi) =>
-    lo === hi
+  await editCarets(ctx, (sel, selStart, selEnd) =>
+    selStart === selEnd
       ? { edit: null, sel }
       : {
-          edit: { start: lo, end: hi, text: clip },
-          sel: { anchor: lo + clip.length, active: lo + clip.length },
+          edit: { start: selStart, end: selEnd, text: clip },
+          sel: {
+            anchor: selStart + clip.length,
+            active: selStart + clip.length,
+          },
         },
   );
   ctx.state.selType = SelType.NONE;
